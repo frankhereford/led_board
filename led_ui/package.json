@@ -9,6 +9,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@preact/signals-react": "^1.3.6",
     "@t3-oss/env-nextjs": "^0.7.0",
     "@tanstack/react-query": "^4.32.6",
     "@trpc/client": "^10.37.1",
