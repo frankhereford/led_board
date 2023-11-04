@@ -1,4 +1,2 @@
-xled
 xled_plus
-Pillow
 redis
