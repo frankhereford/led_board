@@ -2,6 +2,7 @@ import { z } from "zod";
 var fontkit = require('fontkit');
 import { PNG } from 'pngjs';
 import { createCanvas } from 'canvas';
+const { CanvasEmoji } = require("canvas-emoji");
 
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
@@ -105,8 +106,38 @@ export const squareRouter = createTRPCRouter({
     .input(z.object({emoji: z.string()}))
     .mutation(async ({ input }) => {
       
+      const canvas = createCanvas(24, 24);
+      const canvasCtx = canvas.getContext("2d");
+      const canvasEmoji = new CanvasEmoji(canvasCtx);
+      const a = canvasEmoji.drawPngReplaceEmoji({
+        text: input.emoji,
+        fillStyle: "#ff0000",
+        //font: "Regular 36px Apple Color Emoji",
+        x: 0,
+        y: 20,
+        emojiW: 24,
+        emojiH: 24,
+        //length: 20
+      });
+
+
+      const buffer = canvas.toBuffer('image/png');
+
+      const pixels = parsePNG(buffer).reverse();
+
+      const multi = client.multi();
+      for (let y = 0; y < 24; y++) {
+        for (let x = 0; x < 24; x++) {
+          multi.del(`display:${x}:${y}`)
+            .rPush(`display:${x}:${y}`, pixels[y][x][0].toString())
+            .rPush(`display:${x}:${y}`, pixels[y][x][1].toString())
+            .rPush(`display:${x}:${y}`, pixels[y][x][2].toString())
+        }
+      }
+      await multi.publish('update', JSON.stringify({ clear: true })).exec();
+
+      /*
       const font = fontkit.openSync('/home/frank/development/lightboard/led_ui/src/server/api/routers/apple-color-emoji.ttc').fonts[0]
-      //console.log(font)
       const run = font.layout(input.emoji);
       const glyph = run.glyphs[0].getImageForSize(24);
       console.log(glyph)
@@ -124,6 +155,7 @@ export const squareRouter = createTRPCRouter({
         }
       }
       await multi.publish('update', JSON.stringify({ clear: true })).exec();
+      */
     }),
 
 

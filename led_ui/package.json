@@ -16,6 +16,8 @@
     "@trpc/next": "^10.37.1",
     "@trpc/react-query": "^10.37.1",
     "@trpc/server": "^10.37.1",
+    "canvas": "^2.11.2",
+    "canvas-emoji": "^1.1.8",
     "emoji-picker-react": "^4.5.14",
     "fontkit": "^2.0.2",
     "ioredis": "^5.3.2",
