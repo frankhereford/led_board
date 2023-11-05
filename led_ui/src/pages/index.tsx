@@ -2,6 +2,7 @@ import Head from "next/head";
 
 import Square from "~/pages/components/Square";
 import Swatch from "~/pages/components/Swatch";
+import ColorPicker from "~/pages/components/ColorPicker";
 
 import { useContext } from 'react';
 import { AppContext } from '~/pages/contexts/AppContext';
@@ -37,6 +38,10 @@ export default function Home() {
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
       >
+
+        <div className="grid grid-cols-24 gap-1">
+          {squares}
+        </div>
         <div className="flex">
           <Swatch position={0} />
           <Swatch position={1} />
@@ -44,9 +49,10 @@ export default function Home() {
           <Swatch position={3} />
           <Swatch position={4} />
         </div>
-        <div className="grid grid-cols-24 gap-1">
-          {squares}
+        <div>
+          <ColorPicker />
         </div>
+
       </main>
     </>
   );

@@ -27,7 +27,7 @@ const Swatch: React.FC<SwatchProps> = ({ position }) => {
 
   return (
     <div
-      className={`mb-4 mx-1 w-24 h-8 rounded-full justify-center ${activeSwatch === position ? 'ring-4 ring-blue-500' : ''}`}
+      className={`my-4 mx-1 w-24 h-8 rounded-full justify-center ${activeSwatch === position ? 'ring-4 ring-blue-500' : ''}`}
       style={{ backgroundColor: backgroundColor }}
       onClick={handleClick}
     >
