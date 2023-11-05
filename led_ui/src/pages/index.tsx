@@ -3,9 +3,7 @@ import Head from "next/head";
 import Square from "~/pages/components/Square";
 
 export default function Home() {
-  //const square_api = api.square.hello.useQuery({ text: "from tRPC" });
 
-  // Generate an array of 81 <Square /> components (9x9 grid)
   const squares = [];
   for (let y = 23; y >= 0; y--) {
     for (let x = 0; x < 24; x++) {
