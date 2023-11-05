@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { signal, computed, effect } from "@preact/signals-react";
+
+import { useContext } from 'react';
+import { AppContext } from '~/pages/contexts/AppContext';
 
 import { api } from "~/utils/api";
 
@@ -8,31 +10,20 @@ interface SquareProps {
   y: number;
 }
 
-//const color = signal([0,0,0])
-
-// Logs name every time it changes:
-//effect(() => console.log(color.value));
-
 const Square: React.FC<SquareProps> = ({ x, y }) => {
   const setColor = api.square.color.useMutation({});
-
   const [squareColor, setSquareColor] = useState<number[]>([0,0,0]);
-
+  const { colorArrays, isMouseDown, activeSwatch } = useContext(AppContext);
 
   useEffect(() => {
     setColor.mutate({ x: x, y: y, color: squareColor })
   }, [squareColor]);
 
-
-  // Function to generate an array of 3 random numbers between 0 and 255
-  const randomizeColor = () => {
-    setSquareColor([0, 1, 2].map(() => Math.floor(Math.random() * 256)));
+  const handleMouseEnter = () => {
+    if (isMouseDown) {
+      setSquareColor(colorArrays[activeSwatch]!);
+    }
   };
-
-  // Ensure x and y are positive integers
-  if (x < 0 || y < 0 || !Number.isInteger(x) || !Number.isInteger(y)) {
-    return <div>Props x and y must be positive integers.</div>;
-  }
 
   return (
     <div
@@ -41,7 +32,7 @@ const Square: React.FC<SquareProps> = ({ x, y }) => {
         height: '20px',
         backgroundColor: `rgb(${squareColor[0]}, ${squareColor[1]}, ${squareColor[2]})`,
       }}
-      onMouseEnter={randomizeColor} // Attached randomizeColor to the onClick event
+      onMouseEnter={handleMouseEnter}
     >
     </div>
   );
