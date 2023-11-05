@@ -10,6 +10,12 @@ import { AppContext } from '~/pages/contexts/AppContext';
 
 import { api } from "~/utils/api";
 
+import dynamic from 'next/dynamic';
+
+const EmojiPicker = dynamic(() => import('emoji-picker-react').then((mod) => mod.default), {
+  ssr: false,
+});
+
 export default function Home() {
   
   const clearBoard = api.square.clearBoard.useMutation({});
@@ -96,8 +102,8 @@ export default function Home() {
     clearBoard.mutate();
   }
 
-  const setEmoji = () => {
-    renderEmoji.mutate({emoji: '😍'});
+  const setEmoji = (emoji: string, event: MouseEvent) => {
+    renderEmoji.mutate(emoji);
   }
 
 
@@ -137,15 +143,8 @@ export default function Home() {
           </button>
         </div>
         <div>
-          <button
-            className="bg-slate-300 hover:bg-red-700 text-slack-900 font-bold py-2 px-4 rounded"
-            onClick={setEmoji}
-          >
-            👍
-          </button>
+          <EmojiPicker onEmojiClick={setEmoji} />
         </div>
-
-
 
       </main>
     </>
