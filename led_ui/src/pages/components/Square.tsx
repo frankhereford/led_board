@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { inks } from "~/pages/index";
-import { signal, computed, effect } from "@preact/signals-react";
 
 import { api } from "~/utils/api";
 
@@ -9,16 +8,10 @@ interface SquareProps {
   y: number;
 }
 
-//const color = signal([0,0,0])
-
-// Logs name every time it changes:
-//effect(() => console.log(color.value));
-
 const Square: React.FC<SquareProps> = ({ x, y }) => {
   const setColor = api.square.color.useMutation({});
 
   const [squareColor, setSquareColor] = useState<number[]>([0,0,0]);
-
 
   useEffect(() => {
     setColor.mutate({ x: x, y: y, color: squareColor })
