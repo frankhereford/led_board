@@ -7,6 +7,17 @@ import { signal, computed, effect } from "@preact/signals-react";
 
 export const inks = signal([[255,255,0],[255,0,0],[0,255,0],[0,0,255],[0,255,255]]);
 
+export const isMouseDown = signal(false)
+
+const handleMouseDown = () => {
+  isMouseDown.value = true;
+};
+
+const handleMouseUp = () => {
+  isMouseDown.value = false;
+};
+
+
 export default function Home() {
 
   const squares = [];
@@ -23,7 +34,11 @@ export default function Home() {
         <meta name="description" content="UI for LED Board" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]">
+      <main
+        className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]"
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+      >
         <div className="flex">
           <Swatch position={0} />
           <Swatch position={1} />

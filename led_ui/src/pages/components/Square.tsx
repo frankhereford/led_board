@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { inks } from "~/pages/index";
+import { inks, isMouseDown } from "~/pages/index";
 
 import { api } from "~/utils/api";
 
@@ -10,17 +10,16 @@ interface SquareProps {
 
 const Square: React.FC<SquareProps> = ({ x, y }) => {
   const setColor = api.square.color.useMutation({});
-
   const [squareColor, setSquareColor] = useState<number[]>([0,0,0]);
 
   useEffect(() => {
     setColor.mutate({ x: x, y: y, color: squareColor })
   }, [squareColor]);
 
-
-  // Function to generate an array of 3 random numbers between 0 and 255
-  const getColor = () => {
-    setSquareColor(inks.value[0]!)
+  const handleMouseEnter = () => {
+    if (isMouseDown.value) {
+      setSquareColor(inks.value[0]!);
+    }
   };
 
   return (
@@ -30,7 +29,7 @@ const Square: React.FC<SquareProps> = ({ x, y }) => {
         height: '20px',
         backgroundColor: `rgb(${squareColor[0]}, ${squareColor[1]}, ${squareColor[2]})`,
       }}
-      onMouseEnter={getColor} // Attached randomizeColor to the onClick event
+      onMouseEnter={handleMouseEnter}
     >
     </div>
   );
