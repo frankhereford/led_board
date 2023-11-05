@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { inks } from "~/pages/index";
 import { signal, computed, effect } from "@preact/signals-react";
 
 import { api } from "~/utils/api";
@@ -25,8 +26,8 @@ const Square: React.FC<SquareProps> = ({ x, y }) => {
 
 
   // Function to generate an array of 3 random numbers between 0 and 255
-  const randomizeColor = () => {
-    setSquareColor([0, 1, 2].map(() => Math.floor(Math.random() * 256)));
+  const getColor = () => {
+    setSquareColor(inks.value[0]!)
   };
 
   // Ensure x and y are positive integers
@@ -41,7 +42,7 @@ const Square: React.FC<SquareProps> = ({ x, y }) => {
         height: '20px',
         backgroundColor: `rgb(${squareColor[0]}, ${squareColor[1]}, ${squareColor[2]})`,
       }}
-      onMouseEnter={randomizeColor} // Attached randomizeColor to the onClick event
+      onMouseEnter={getColor} // Attached randomizeColor to the onClick event
     >
     </div>
   );

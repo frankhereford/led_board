@@ -2,6 +2,10 @@ import Head from "next/head";
 
 import Square from "~/pages/components/Square";
 
+import { signal, computed, effect } from "@preact/signals-react";
+
+export const inks = signal([[255,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0]]);
+
 export default function Home() {
 
   const squares = [];
