@@ -44,7 +44,7 @@ export const squareRouter = createTRPCRouter({
       const y = input.y
       console.log(input)
       //const randomValues = generateTuples(1)[0]; // Ensure generateTuples is defined
-      console.log(input.color)
+      //console.log(input.color)
       await client.multi()
         .del(`display:${x}:${y}`)
         .rPush(`display:${x}:${y}`, input.color[0]?.toString()!)
