@@ -12,6 +12,7 @@ import { api } from "~/utils/api";
 
 export default function Home() {
   
+  const clearBoard = api.square.clearBoard.useMutation({});
   const getBoard = api.square.getBoard.useQuery();
 
   const [squareColors, setSquareColors] = useState(() =>
@@ -20,22 +21,17 @@ export default function Home() {
 
   const { colorArrays, setColorArrays, isMouseDown, setIsMouseDown } = useContext(AppContext);
 
-  
   useEffect(() => {
-    //console.log(getBoard.data);
     if (getBoard.data) {
       for (let y = 0; y < getBoard.data.length; y++) {
         for (let x = 0; x < getBoard.data.length; x++) {
-          //console.log(getBoard.data[y]![x])
-          setColorAt(x, y, getBoard.data[y]![x]!)
+          setColorAt(x, y, getBoard.data[y]![x]!.color)
         }
       }
     }
-  
   }, [getBoard.data]);
 
   useEffect(() => {
-    // Establish the WebSocket connection
     const websocket = new WebSocket('ws://10.10.10.1:3001/ws');
 
     websocket.onopen = () => {
@@ -43,10 +39,14 @@ export default function Home() {
     };
 
     websocket.onmessage = (event) => {
-      //console.log('Received:', event.data);
       const data = JSON.parse(event.data);
-      //console.log(data);
-      setColorAt(data.x, data.y, data.color);
+      console.log(data)
+      if (data.clear) {
+        console.log('in clear')
+        getBoard.refetch();
+      } else {
+        setColorAt(data.x, data.y, data.color);
+      }
     };
 
     websocket.onerror = (error) => {
@@ -62,16 +62,14 @@ export default function Home() {
     };
   }, []);
 
-  // Function to update the color of a square
   const setColorAt = (x: number, y: number, color: number[]) => {
     //console.log(`Setting color at ${x}, ${y} to ${color}`);
     setSquareColors((prevColors) => {
       const newColors = [...prevColors];
-      newColors[y]![x] = color; // assuming the first index is Y and the second index is X
+      newColors[y]![x] = color;
       return newColors;
     });
   };
-
 
   const squares = [];
   for (let y = 23; y >= 0; y--) {
@@ -80,7 +78,7 @@ export default function Home() {
         key={`${x}-${y}`}
         x={x}
         y={y}
-        color={squareColors[y]![x]} // Pass the color from state
+        color={squareColors[y]![x]}
       />);
     }
   }
@@ -91,6 +89,10 @@ export default function Home() {
 
   const handleMouseUp= () => {
     setIsMouseDown(false);
+  }
+
+  const clearTheBoard = () => {
+    clearBoard.mutate();
   }
 
   return (
@@ -119,6 +121,16 @@ export default function Home() {
         <div>
           <ColorPicker />
         </div>
+
+        <div>
+          <button
+            className="bg-slate-300 hover:bg-red-700 text-slack-900 font-bold py-2 px-4 rounded"
+            onClick={clearTheBoard}
+          >
+            Clear
+          </button>
+        </div>
+
 
       </main>
     </>

@@ -57,11 +57,29 @@ export const squareRouter = createTRPCRouter({
         const row = [];
         for (let x = 0; x < 24; x++) {
           const color = await client.lRange(`display:${x}:${y}`, 0, -1);
-          row.push(color.map(value => parseInt(value, 10)));
+          row.push({
+            color: color.map(value => parseInt(value, 10)),
+            timestamp: Date.now()
+          });
         }
         board.push(row);
       }
       return board;
     }),
+
+  clearBoard: publicProcedure
+    .mutation(async () => {
+      const multi = client.multi();
+      for (let y = 0; y < 24; y++) {
+        for (let x = 0; x < 24; x++) {
+          multi.del(`display:${x}:${y}`)
+            .rPush(`display:${x}:${y}`, '0')
+            .rPush(`display:${x}:${y}`, '0')
+            .rPush(`display:${x}:${y}`, '0');
+        }
+      }
+      await multi.publish('update', JSON.stringify({ clear: true })).exec();
+    }),
+
 
 });
