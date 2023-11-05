@@ -35,6 +35,7 @@ export const squareRouter = createTRPCRouter({
 
       return ;
     }),
+
   getColor: publicProcedure
     .input(z.object({
       x: z.number().int(),
@@ -48,4 +49,19 @@ export const squareRouter = createTRPCRouter({
 
       return color.map(value => parseInt(value, 10));
     }),
+
+  getBoard: publicProcedure
+    .query(async () => {
+      const board = [];
+      for (let y = 0; y < 24; y++) {
+        const row = [];
+        for (let x = 0; x < 24; x++) {
+          const color = await client.lRange(`display:${x}:${y}`, 0, -1);
+          row.push(color.map(value => parseInt(value, 10)));
+        }
+        board.push(row);
+      }
+      return board;
+    }),
+
 });

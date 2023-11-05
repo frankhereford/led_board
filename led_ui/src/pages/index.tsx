@@ -8,22 +8,31 @@ import ColorPicker from "~/pages/components/ColorPicker";
 
 import { AppContext } from '~/pages/contexts/AppContext';
 
+import { api } from "~/utils/api";
+
 export default function Home() {
+  
+  const getBoard = api.square.getBoard.useQuery();
+
   const [squareColors, setSquareColors] = useState(() =>
     Array(24).fill(null).map(() => Array(24).fill([0, 0, 0]))
   );
 
   const { colorArrays, setColorArrays, isMouseDown, setIsMouseDown } = useContext(AppContext);
 
-  // Function to update the color of a square
-  const setColorAt = (x, y, color) => {
-    console.log(`Setting color at ${x}, ${y} to ${color}`);
-    setSquareColors((prevColors) => {
-      const newColors = [...prevColors];
-      newColors[y][x] = color; // assuming the first index is Y and the second index is X
-      return newColors;
-    });
-  };
+  
+  useEffect(() => {
+    //console.log(getBoard.data);
+    if (getBoard.data) {
+      for (let y = 0; y < getBoard.data.length; y++) {
+        for (let x = 0; x < getBoard.data.length; x++) {
+          //console.log(getBoard.data[y]![x])
+          setColorAt(x, y, getBoard.data[y]![x]!)
+        }
+      }
+    }
+  
+  }, [getBoard.data]);
 
   useEffect(() => {
     // Establish the WebSocket connection
@@ -34,9 +43,9 @@ export default function Home() {
     };
 
     websocket.onmessage = (event) => {
-      console.log('Received:', event.data);
+      //console.log('Received:', event.data);
       const data = JSON.parse(event.data);
-      console.log(data);
+      //console.log(data);
       setColorAt(data.x, data.y, data.color);
     };
 
@@ -52,6 +61,17 @@ export default function Home() {
       websocket.close();
     };
   }, []);
+
+  // Function to update the color of a square
+  const setColorAt = (x, y, color) => {
+    //console.log(`Setting color at ${x}, ${y} to ${color}`);
+    setSquareColors((prevColors) => {
+      const newColors = [...prevColors];
+      newColors[y][x] = color; // assuming the first index is Y and the second index is X
+      return newColors;
+    });
+  };
+
 
   const squares = [];
   for (let y = 23; y >= 0; y--) {
