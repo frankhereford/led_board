@@ -7,12 +7,11 @@ export default function Home() {
 
   // Generate an array of 81 <Square /> components (9x9 grid)
   const squares = [];
-  for (let y = 0; y < 24; y++) {
+  for (let y = 23; y >= 0; y--) {
     for (let x = 0; x < 24; x++) {
       squares.push(<Square key={`${x}-${y}`} x={x} y={y} />);
     }
   }
-
 
   return (
     <>
