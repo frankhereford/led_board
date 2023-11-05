@@ -13,6 +13,7 @@ import { api } from "~/utils/api";
 export default function Home() {
   
   const clearBoard = api.square.clearBoard.useMutation({});
+  const renderEmoji = api.square.setEmoji.useMutation({});
   const getBoard = api.square.getBoard.useQuery();
 
   const [squareColors, setSquareColors] = useState(() =>
@@ -95,6 +96,11 @@ export default function Home() {
     clearBoard.mutate();
   }
 
+  const setEmoji = () => {
+    renderEmoji.mutate({emoji: '👍'});
+  }
+
+
   return (
     <>
       <Head>
@@ -130,6 +136,15 @@ export default function Home() {
             Clear
           </button>
         </div>
+        <div>
+          <button
+            className="bg-slate-300 hover:bg-red-700 text-slack-900 font-bold py-2 px-4 rounded"
+            onClick={setEmoji}
+          >
+            👍
+          </button>
+        </div>
+
 
 
       </main>
