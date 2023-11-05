@@ -1,17 +1,29 @@
 import Head from "next/head";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 
 import Square from "~/pages/components/Square";
 import Swatch from "~/pages/components/Swatch";
 import ColorPicker from "~/pages/components/ColorPicker";
 
-import { useContext } from 'react';
 import { AppContext } from '~/pages/contexts/AppContext';
 
 export default function Home() {
+  const [squareColors, setSquareColors] = useState(() =>
+    Array(24).fill(null).map(() => Array(24).fill([0, 0, 0]))
+  );
 
   const { colorArrays, setColorArrays, isMouseDown, setIsMouseDown } = useContext(AppContext);
+
+  // Function to update the color of a square
+  const setColorAt = (x, y, color) => {
+    console.log(`Setting color at ${x}, ${y} to ${color}`);
+    setSquareColors((prevColors) => {
+      const newColors = [...prevColors];
+      newColors[y][x] = color; // assuming the first index is Y and the second index is X
+      return newColors;
+    });
+  };
 
   useEffect(() => {
     // Establish the WebSocket connection
@@ -23,6 +35,9 @@ export default function Home() {
 
     websocket.onmessage = (event) => {
       console.log('Received:', event.data);
+      const data = JSON.parse(event.data);
+      console.log(data);
+      setColorAt(data.x, data.y, data.color);
     };
 
     websocket.onerror = (error) => {
@@ -38,12 +53,15 @@ export default function Home() {
     };
   }, []);
 
-
-
   const squares = [];
   for (let y = 23; y >= 0; y--) {
     for (let x = 0; x < 24; x++) {
-      squares.push(<Square key={`${x}-${y}`} x={x} y={y} color={[10,0,0]} />);
+      squares.push(<Square
+        key={`${x}-${y}`}
+        x={x}
+        y={y}
+        color={squareColors[y][x]} // Pass the color from state
+      />);
     }
   }
 
