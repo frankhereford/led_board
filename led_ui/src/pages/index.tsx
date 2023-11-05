@@ -97,7 +97,7 @@ export default function Home() {
   }
 
   const setEmoji = () => {
-    renderEmoji.mutate({emoji: '👍'});
+    renderEmoji.mutate({emoji: '😍'});
   }
 
 

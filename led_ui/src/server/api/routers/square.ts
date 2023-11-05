@@ -102,11 +102,11 @@ export const squareRouter = createTRPCRouter({
 
   setEmoji: publicProcedure
     .input(z.object({emoji: z.string()}))
-    .mutation(async () => {
+    .mutation(async ({ input }) => {
       
       const font = fontkit.openSync('/home/frank/development/lightboard/led_ui/src/server/api/routers/apple-color-emoji.ttc').fonts[0]
       //console.log(font)
-      const run = font.layout('️🐈‍⬛');
+      const run = font.layout(input.emoji);
       const glyph = run.glyphs[0].getImageForSize(24);
       console.log(glyph)
 
