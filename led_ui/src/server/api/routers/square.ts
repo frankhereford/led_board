@@ -1,17 +1,11 @@
 import { z } from "zod";
+import { observable } from '@trpc/server/observable';
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 import { createClient } from "redis";
-//import Redis from 'ioredis';
-
-let post = {
-  id: 1,
-  name: "Hello World",
-};
 
 const client = createClient({
-  // your redis configuration
   url: 'redis://localhost'
 });
 
@@ -19,21 +13,8 @@ client.on('error', (err) => console.log('Redis Client Error', err));
 
 await client.connect();
 
-function generateTuples(n: number): Array<any> {
-  // Your tuple generation logic here
-  return [['value1', 'value2']]; // Example return value
-}
-
 export const squareRouter = createTRPCRouter({
-  hello: publicProcedure
-    .input(z.object({ text: z.string() }))
-    .query(({ input }) => {
-      return {
-        greeting: `Hello ${input.text}`,
-      };
-    }),
-
-  color: publicProcedure
+  setColor: publicProcedure
     .input(z.object({
       x: z.number().int(),
       y: z.number().int(),
@@ -43,29 +24,44 @@ export const squareRouter = createTRPCRouter({
       const x = input.x
       const y = input.y
       console.log(input)
-      //const randomValues = generateTuples(1)[0]; // Ensure generateTuples is defined
-      //console.log(input.color)
+
       await client.multi()
         .del(`display:${x}:${y}`)
         .rPush(`display:${x}:${y}`, input.color[0]?.toString()!)
         .rPush(`display:${x}:${y}`, input.color[1]?.toString()!)
         .rPush(`display:${x}:${y}`, input.color[2]?.toString()!)
+        .publish('update', JSON.stringify({ x: x, y: y, color: input.color }))
         .exec();
 
-      //await client.disconnect();
-      
-      //const redisClient = await createClient({
-        //url: 'redis://localhost'
-      //}).connect();
-
-      // simulate a slow db call
-      //await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      //post = { id: post.id + 1, name: input.name };
-      return post;
+      return ;
     }),
 
-  getLatest: publicProcedure.query(() => {
-    return post;
-  }),
+  getColor: publicProcedure
+    .input(z.object({
+      x: z.number().int(),
+      y: z.number().int(),
+    }))
+    .query(async ({ input }) => {
+      const x = input.x;
+      const y = input.y;
+
+      const color = await client.lRange(`display:${x}:${y}`, 0, -1);
+
+      return color.map(value => parseInt(value, 10));
+    }),
+
+  getBoard: publicProcedure
+    .query(async () => {
+      const board = [];
+      for (let y = 0; y < 24; y++) {
+        const row = [];
+        for (let x = 0; x < 24; x++) {
+          const color = await client.lRange(`display:${x}:${y}`, 0, -1);
+          row.push(color.map(value => parseInt(value, 10)));
+        }
+        board.push(row);
+      }
+      return board;
+    }),
+
 });

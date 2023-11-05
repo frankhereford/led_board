@@ -8,20 +8,27 @@ import { api } from "~/utils/api";
 interface SquareProps {
   x: number;
   y: number;
+  color: number[];
 }
 
-const Square: React.FC<SquareProps> = ({ x, y }) => {
-  const setColor = api.square.color.useMutation({});
+const Square: React.FC<SquareProps> = ({ x, y, color }) => {
+  const setColor = api.square.setColor.useMutation({});
+  //const getColor = api.square.getColor.useQuery({x: x, y: y});
   const [squareColor, setSquareColor] = useState<number[]>([0,0,0]);
   const { colorArrays, isMouseDown, activeSwatch } = useContext(AppContext);
 
   useEffect(() => {
-    setColor.mutate({ x: x, y: y, color: squareColor })
-  }, [squareColor]);
+    setSquareColor(color);
+  }, [color]);
+
+  //useEffect(() => {
+    //setColor.mutate({ x: x, y: y, color: squareColor })
+  //}, [squareColor]);
 
   const handleMouseEnter = () => {
     if (isMouseDown) {
-      setSquareColor(colorArrays[activeSwatch]!);
+      //setSquareColor(colorArrays[activeSwatch]!);
+      setColor.mutate({ x: x, y: y, color: colorArrays[activeSwatch]! })
     }
   };
 
