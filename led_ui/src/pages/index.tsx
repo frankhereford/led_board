@@ -1,5 +1,7 @@
 import Head from "next/head";
 
+import React, { useEffect } from 'react';
+
 import Square from "~/pages/components/Square";
 import Swatch from "~/pages/components/Swatch";
 import ColorPicker from "~/pages/components/ColorPicker";
@@ -11,10 +13,37 @@ export default function Home() {
 
   const { colorArrays, setColorArrays, isMouseDown, setIsMouseDown } = useContext(AppContext);
 
+  useEffect(() => {
+    // Establish the WebSocket connection
+    const websocket = new WebSocket('ws://10.10.10.1:3001/ws');
+
+    websocket.onopen = () => {
+      console.log('WebSocket Connected');
+    };
+
+    websocket.onmessage = (event) => {
+      console.log('Received:', event.data);
+    };
+
+    websocket.onerror = (error) => {
+      console.error('WebSocket Error:', error);
+    };
+
+    websocket.onclose = () => {
+      console.log('WebSocket Disconnected');
+    };
+
+    return () => {
+      websocket.close();
+    };
+  }, []);
+
+
+
   const squares = [];
   for (let y = 23; y >= 0; y--) {
     for (let x = 0; x < 24; x++) {
-      squares.push(<Square key={`${x}-${y}`} x={x} y={y} />);
+      squares.push(<Square key={`${x}-${y}`} x={x} y={y} color={[10,0,0]} />);
     }
   }
 
