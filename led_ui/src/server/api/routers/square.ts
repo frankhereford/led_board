@@ -1,7 +1,8 @@
 import { z } from "zod";
 var fontkit = require('fontkit');
-import emoji from 'node-emoji';
 import { PNG } from 'pngjs';
+import { createCanvas } from 'canvas';
+
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
