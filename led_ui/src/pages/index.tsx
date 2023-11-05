@@ -63,11 +63,11 @@ export default function Home() {
   }, []);
 
   // Function to update the color of a square
-  const setColorAt = (x, y, color) => {
+  const setColorAt = (x: number, y: number, color: number[]) => {
     //console.log(`Setting color at ${x}, ${y} to ${color}`);
     setSquareColors((prevColors) => {
       const newColors = [...prevColors];
-      newColors[y][x] = color; // assuming the first index is Y and the second index is X
+      newColors[y]![x] = color; // assuming the first index is Y and the second index is X
       return newColors;
     });
   };
@@ -80,7 +80,7 @@ export default function Home() {
         key={`${x}-${y}`}
         x={x}
         y={y}
-        color={squareColors[y][x]} // Pass the color from state
+        color={squareColors[y]![x]} // Pass the color from state
       />);
     }
   }
