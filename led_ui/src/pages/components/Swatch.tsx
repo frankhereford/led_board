@@ -1,14 +1,16 @@
 import React from 'react';
-import { inks } from "~/pages/index";
-import { signal, computed } from "@preact/signals-react";
-
-
-function toTailwindBgClass(rgb: [number, number, number]): string {
-  return `bg-[#${rgb.map((val) => val.toString(16).padStart(2, '0')).join('')}]`;
-}
 
 function toCssBackground(rgb: [number, number, number]): string {
   return `#${rgb.map(val => val.toString(16).padStart(2, '0')).join('')};`;
+}
+
+function moveToFront<T>(array: T[], index: number): T[] {
+  if (index >= array.length) {
+    throw new Error("Index out of bounds");
+  }
+  const [item] = array.splice(index, 1);
+  array.unshift(item!);
+  return array;
 }
 
 interface SwatchProps {
@@ -17,13 +19,14 @@ interface SwatchProps {
 
 const Swatch: React.FC<SwatchProps> = ({ position }) => {
 
-  const color = computed(() => inks.value[position]!);
-  const background_color = computed(() => toCssBackground(inks.value[position]));
+  const background_color = '#ff0000';
+
 
   return (
     <div
-      className={'w-16 h-8 rounded-full'}
-      style={{ backgroundColor: background_color.value }}
+      className={'w-24 h-8 rounded-full justify-center'}
+      style={{ backgroundColor: background_color }}
+      //onClick={onClick}
     >
     </div>
   );

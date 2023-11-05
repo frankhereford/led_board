@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { inks, isMouseDown } from "~/pages/index";
 
 import { api } from "~/utils/api";
 
@@ -16,11 +15,11 @@ const Square: React.FC<SquareProps> = ({ x, y }) => {
     setColor.mutate({ x: x, y: y, color: squareColor })
   }, [squareColor]);
 
-  const handleMouseEnter = () => {
-    if (isMouseDown.value) {
-      setSquareColor(inks.value[0]!);
-    }
-  };
+  //const handleMouseEnter = () => {
+    //if (isMouseDown.value) {
+      //setSquareColor(inks.value[0]!);
+    //}
+  //};
 
   return (
     <div
@@ -29,7 +28,7 @@ const Square: React.FC<SquareProps> = ({ x, y }) => {
         height: '20px',
         backgroundColor: `rgb(${squareColor[0]}, ${squareColor[1]}, ${squareColor[2]})`,
       }}
-      onMouseEnter={handleMouseEnter}
+      //onMouseEnter={handleMouseEnter}
     >
     </div>
   );

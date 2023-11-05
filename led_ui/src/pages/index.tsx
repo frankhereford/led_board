@@ -3,20 +3,17 @@ import Head from "next/head";
 import Square from "~/pages/components/Square";
 import Swatch from "~/pages/components/Swatch";
 
-import { signal, computed, effect } from "@preact/signals-react";
 
-export const inks = signal([[255,255,0],[255,0,0],[0,255,0],[0,0,255],[0,255,255]]);
+//export const inks = signal([[255,255,0],[255,0,0],[0,255,0],[0,0,255],[0,255,255]]);
+//export const isMouseDown = signal(false)
 
-export const isMouseDown = signal(false)
+//const handleMouseDown = () => {
+  //isMouseDown.value = true;
+//};
 
-const handleMouseDown = () => {
-  isMouseDown.value = true;
-};
-
-const handleMouseUp = () => {
-  isMouseDown.value = false;
-};
-
+//const handleMouseUp = () => {
+  //isMouseDown.value = false;
+//};
 
 export default function Home() {
 
@@ -36,8 +33,8 @@ export default function Home() {
       </Head>
       <main
         className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]"
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
+        //onMouseDown={handleMouseDown}
+        //onMouseUp={handleMouseUp}
       >
         <div className="flex">
           <Swatch position={0} />
