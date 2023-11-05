@@ -1,10 +1,11 @@
 import Head from "next/head";
 
 import Square from "~/pages/components/Square";
+import Swatch from "~/pages/components/Swatch";
 
 import { signal, computed, effect } from "@preact/signals-react";
 
-export const inks = signal([[255,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0]]);
+export const inks = signal([[255,255,0],[255,0,0],[0,255,0],[0,0,255],[0,255,255]]);
 
 export default function Home() {
 
@@ -23,6 +24,13 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]">
+        <div className="flex">
+          <Swatch position={0} />
+          <Swatch position={1} />
+          <Swatch position={2} />
+          <Swatch position={3} />
+          <Swatch position={4} />
+        </div>
         <div className="grid grid-cols-24 gap-1">
           {squares}
         </div>
