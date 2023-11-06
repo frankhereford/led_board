@@ -40,7 +40,7 @@ export default function Home() {
   }, [getBoard.data]);
 
   useEffect(() => {
-    const websocket = new WebSocket('ws://10.10.10.1:3001/ws');
+    const websocket = new WebSocket('wss://draw-on-me-websockets.tomgreen.house/ws');
 
     websocket.onopen = () => {
       console.log('WebSocket Connected');
@@ -135,18 +135,18 @@ export default function Home() {
         </div>
         <div className="basis-1/2 flex-auto">
           
-          <div className="flex flex-row">
+          <div className="flex flex-row z-10">
 
-            <div className="basis-1/4">
-              <div className="flex flex-col">
-                <Swatch position={0} />
-                <Swatch position={1} />
-                <Swatch position={2} />
-                <Swatch position={3} />
-                <Swatch position={4} />
-                <Swatch position={5} />
-                <Swatch position={6} />
-                <Swatch position={7} />
+            <div className="basis-1/4 z-10">
+              <div className="flex flex-col z-10">
+                <Swatch position={0} className="x-10" />
+                <Swatch position={1} className="x-10" />
+                <Swatch position={2} className="x-10" />
+                <Swatch position={3} className="x-10" />
+                <Swatch position={4} className="x-10" />
+                <Swatch position={5} className="x-10" />
+                <Swatch position={6} className="x-10" />
+                <Swatch position={7} className="x-10" />
                 <div>
                   <button
                     className="my-4 mx-1 w-36 h-12 rounded-full bg-slate-500 hover:bg-red-500 text-slack-900 font-bold"
