@@ -21,15 +21,14 @@ const Square: React.FC<SquareProps> = ({ x, y, color }) => {
     setSquareColor(color);
   }, [color]);
 
-  //useEffect(() => {
-    //setColor.mutate({ x: x, y: y, color: squareColor })
-  //}, [squareColor]);
-
   const handleMouseEnter = () => {
     if (isMouseDown) {
-      //setSquareColor(colorArrays[activeSwatch]!);
       setColor.mutate({ x: x, y: y, color: colorArrays[activeSwatch]! })
     }
+  };
+
+  const handleMouseDown = () => {
+    setColor.mutate({ x: x, y: y, color: colorArrays[activeSwatch]! })
   };
 
   return (
@@ -40,6 +39,7 @@ const Square: React.FC<SquareProps> = ({ x, y, color }) => {
         backgroundColor: `rgb(${squareColor[0]}, ${squareColor[1]}, ${squareColor[2]})`,
       }}
       onMouseEnter={handleMouseEnter}
+      onClick={handleMouseDown}
     >
     </div>
   );
