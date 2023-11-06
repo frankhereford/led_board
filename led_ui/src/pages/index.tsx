@@ -80,7 +80,7 @@ export default function Home() {
   };
 
   const squares = [];
-  for (let y = 23; y >= 0; y--) {
+  for (let y = 0; y < 24; y++) {
     for (let x = 0; x < 24; x++) {
       squares.push(<Square
         key={`${x}-${y}`}
@@ -168,7 +168,10 @@ export default function Home() {
                 <ColorPicker />
               </div>
               <div>
-                <EmojiPicker onEmojiClick={setEmoji} />
+                <EmojiPicker
+                  width={387}
+                  height={460}
+                  onEmojiClick={setEmoji} />
               </div>
             </div>
 
