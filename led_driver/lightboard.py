@@ -43,9 +43,11 @@ class RedisEffect(Effect):
 
     def get_value_from_redis(self, x, y):
         x_mapped = self.map_to_range(x + 0.5, x_width - 1)  # Shift x to a 0 to 1 range before mapping
+        #x_mapped = self.map_to_range(x_width - x - 1.5, x_width - 1)
         y_mapped = self.map_to_range(y, y_height - 1)
         #print(f"{x}, {y} -> {x_mapped}, {y_mapped}")
-        key = f"display:{x_mapped}:{y_mapped}"
+        x_flipped = 23 - x_mapped 
+        key = f"display:{x_flipped}:{y_mapped}"
         value = redis_client.lrange(key, 0, -1)
         return tuple(map(int, value)) if value else (0, 0, 0)
 

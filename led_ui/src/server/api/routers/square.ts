@@ -123,7 +123,7 @@ export const squareRouter = createTRPCRouter({
 
       const buffer = canvas.toBuffer('image/png');
 
-      const pixels = parsePNG(buffer).reverse();
+      const pixels = parsePNG(buffer);
 
       const multi = client.multi();
       for (let y = 0; y < 24; y++) {

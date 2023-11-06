@@ -11,6 +11,7 @@ import { AppContext } from '~/pages/contexts/AppContext';
 import { api } from "~/utils/api";
 
 import dynamic from 'next/dynamic';
+import { relative } from "path";
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react').then((mod) => mod.default), {
   ssr: false,
@@ -79,7 +80,7 @@ export default function Home() {
   };
 
   const squares = [];
-  for (let y = 23; y >= 0; y--) {
+  for (let y = 0; y < 24; y++) {
     for (let x = 0; x < 24; x++) {
       squares.push(<Square
         key={`${x}-${y}`}
@@ -115,35 +116,67 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main
-        className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]"
+        className="flex flex-row min-h-screen items-center justify-center bg-gradient-to-b from-[#C6C1B7] to-[#C6C1B7]"
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
       >
+        <img src='/draw-on-me.png' style={{
+          position: 'absolute',
+          top: 0,
+          width: '200px',
+          zIndex: 0,
 
-        <div className="grid grid-cols-24 gap-1">
-          {squares}
-        </div>
-        <div className="flex">
-          <Swatch position={0} />
-          <Swatch position={1} />
-          <Swatch position={2} />
-          <Swatch position={3} />
-          <Swatch position={4} />
-        </div>
-        <div>
-          <ColorPicker />
-        </div>
+        }} />
 
-        <div>
-          <button
-            className="bg-slate-300 hover:bg-red-700 text-slack-900 font-bold py-2 px-4 rounded"
-            onClick={clearTheBoard}
-          >
-            Clear
-          </button>
+        <div className="flex justify-center basis-1/2 flex-1 z-10">
+          <div className="grid grid-cols-24 gap-1 bg-neutral-900" style={{ width: "548px"}}>
+            {squares}
+          </div>
         </div>
-        <div>
-          <EmojiPicker onEmojiClick={setEmoji} />
+        <div className="basis-1/2 flex-auto">
+          
+          <div className="flex flex-row">
+
+            <div className="basis-1/4">
+              <div className="flex flex-col">
+                <Swatch position={0} />
+                <Swatch position={1} />
+                <Swatch position={2} />
+                <Swatch position={3} />
+                <Swatch position={4} />
+                <Swatch position={5} />
+                <Swatch position={6} />
+                <Swatch position={7} />
+                <div>
+                  <button
+                    className="my-4 mx-1 w-36 h-12 rounded-full bg-slate-500 hover:bg-red-500 text-slack-900 font-bold"
+                    style={{
+                      position: 'relative',
+                      left: '-22px',
+                    }}
+                    onClick={clearTheBoard}
+                  >
+                    📄
+                  </button>
+                </div>
+              </div>
+            </div>
+
+
+            <div className='basis-3/4'>
+              <div>
+                <ColorPicker />
+              </div>
+              <div>
+                <EmojiPicker
+                  width={387}
+                  height={460}
+                  onEmojiClick={setEmoji} />
+              </div>
+            </div>
+
+          </div>
+
         </div>
 
       </main>
