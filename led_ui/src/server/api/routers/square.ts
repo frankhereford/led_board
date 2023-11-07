@@ -181,9 +181,14 @@ export const squareRouter = createTRPCRouter({
       const pixels_list = await getPixelData(imageBuffer);
       const pixels = Array.from({ length: 24 }, (_, i) => pixels_list.slice(i * 24, i * 24 + 24));
 
+      const threshold = 20
       const multi = client.multi();
       for (let y = 0; y < 24; y++) {
         for (let x = 0; x < 24; x++) {
+          if (pixels[y][x][0] < threshold && pixels[y][x][1] < threshold && pixels[y][x][2] < threshold) {
+            pixels[y][x] = [0, 0, 0];
+          }
+
           multi.del(`display:${x}:${y}`)
             .rPush(`display:${x}:${y}`, pixels[y][x][0].toString())
             .rPush(`display:${x}:${y}`, pixels[y][x][1].toString())
