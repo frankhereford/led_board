@@ -3,6 +3,12 @@ var fontkit = require('fontkit');
 import { PNG } from 'pngjs';
 import { createCanvas } from 'canvas';
 const { CanvasEmoji } = require("canvas-emoji");
+import emoji_lookup from '~/utils/emojis.json';
+import { promises as fs } from 'fs';
+import * as path from 'path';
+import sharp from 'sharp';
+
+
 
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
@@ -33,6 +39,67 @@ function parsePNG(buffer: Buffer): number[][][] {
 
   return pixels;
 }
+
+function findEmojiEntry(emoji: string) {
+  const emojis = emoji_lookup["emojis"] 
+  const entry = (emojis.find(entry => entry.emoji === emoji))
+  return entry
+}
+
+function createSlugFromEmojiObject(obj: { name: string }): string {
+  return obj.name.toLowerCase().replace(/:|\s/g, '-').replace(/[^a-z0-9-]/g, '');
+}
+
+function formatUnicode(data: { emoji: string; name: string; shortname: string; unicode: string; html: string; category: string; order: string }): string {
+  return data.unicode.toLowerCase().replace(/\s/g, '-');
+}
+
+async function findEmojiFile(unicodeString: string, directoryPath: string): Promise<string | null> {
+  try {
+    const files = await fs.readdir(directoryPath);
+    const foundFile = files.find(file => file.includes(unicodeString));
+    return foundFile ? path.join(directoryPath, foundFile) : null;
+  } catch (error) {
+    console.error('An error occurred:', error);
+    return null;
+  }
+}
+
+async function resizeImage(filePath: string): Promise<Buffer> {
+  try {
+    const buffer: Buffer = await sharp(filePath)
+      .resize(24, 24)
+      .toFormat('png')
+      .toBuffer();
+    return buffer;
+  } catch (err) {
+    console.error('Error processing image:', err);
+    throw err;
+  }
+}
+
+const getPixelData = async (buffer: Buffer): Promise<number[][]> => {
+  const { data, info } = await sharp(buffer)
+    .raw()
+    .ensureAlpha()
+    .toBuffer({ resolveWithObject: true });
+
+  const pixels: number[][] = [];
+
+  for (let i = 0; i < data.length; i += info.channels) {
+    // Assuming the image is in RGBA format
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    // You can add alpha if you need it, just uncomment
+    // const a = data[i + 3];
+
+    pixels.push([r, g, b]); // or push [r, g, b, a] if you included alpha
+  }
+
+  return pixels;
+};
+
 
 export const squareRouter = createTRPCRouter({
   setColor: publicProcedure
@@ -106,6 +173,26 @@ export const squareRouter = createTRPCRouter({
     .input(z.object({emoji: z.string()}))
     .mutation(async ({ input }) => {
       
+      const entry = findEmojiEntry(input.emoji)
+      const code = formatUnicode(entry)
+      const directoryPath = '/var/lib/emoji-images';
+      const filePath = await findEmojiFile(code, directoryPath);
+      const imageBuffer = await resizeImage(filePath!);
+      const pixels_list = await getPixelData(imageBuffer);
+      const pixels = Array.from({ length: 24 }, (_, i) => pixels_list.slice(i * 24, i * 24 + 24));
+
+      const multi = client.multi();
+      for (let y = 0; y < 24; y++) {
+        for (let x = 0; x < 24; x++) {
+          multi.del(`display:${x}:${y}`)
+            .rPush(`display:${x}:${y}`, pixels[y][x][0].toString())
+            .rPush(`display:${x}:${y}`, pixels[y][x][1].toString())
+            .rPush(`display:${x}:${y}`, pixels[y][x][2].toString())
+        }
+      }
+      await multi.publish('update', JSON.stringify({ clear: true })).exec();
+
+      /*
       const canvas = createCanvas(24, 24);
       const canvasCtx = canvas.getContext("2d");
       const canvasEmoji = new CanvasEmoji(canvasCtx);
@@ -113,6 +200,7 @@ export const squareRouter = createTRPCRouter({
         text: input.emoji,
         fillStyle: "#ff0000",
         //font: "Regular 36px Apple Color Emoji",
+        font: "a;lskdjf",
         x: 0,
         y: 20,
         emojiW: 24,
@@ -135,6 +223,7 @@ export const squareRouter = createTRPCRouter({
         }
       }
       await multi.publish('update', JSON.stringify({ clear: true })).exec();
+      */
 
       /*
       const font = fontkit.openSync('/home/frank/development/lightboard/led_ui/src/server/api/routers/apple-color-emoji.ttc').fonts[0]
