@@ -39,7 +39,7 @@ const Square: React.FC<SquareProps> = ({ x, y, color }) => {
         backgroundColor: `rgb(${squareColor[0]}, ${squareColor[1]}, ${squareColor[2]})`,
       }}
       onMouseEnter={handleMouseEnter}
-      onClick={handleMouseDown}
+      onMouseDown={handleMouseDown}
     >
     </div>
   );
