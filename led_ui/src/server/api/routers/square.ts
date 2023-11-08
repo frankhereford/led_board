@@ -57,7 +57,9 @@ function formatUnicode(data: { emoji: string; name: string; shortname: string; u
 async function findEmojiFile(unicodeString: string, directoryPath: string): Promise<string | null> {
   try {
     const files = await fs.readdir(directoryPath);
+    //console.log(files)
     const foundFile = files.find(file => file.includes(unicodeString));
+    //console.log(foundFile)
     return foundFile ? path.join(directoryPath, foundFile) : null;
   } catch (error) {
     console.error('An error occurred:', error);
@@ -174,7 +176,9 @@ export const squareRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       
       const entry = findEmojiEntry(input.emoji)
+      console.log(entry)
       const code = formatUnicode(entry)
+      console.log(code)
       const directoryPath = '/var/lib/emoji-images';
       const filePath = await findEmojiFile(code, directoryPath);
       const imageBuffer = await resizeImage(filePath!);
