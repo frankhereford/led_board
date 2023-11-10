@@ -1,5 +1,5 @@
 import redis
-from PIL import Image
+from PIL import Image, ImageEnhance
 import sys
 import requests
 from io import BytesIO
@@ -15,7 +15,12 @@ def set_display_value(x, y, value):
         pipeline.rpush(key, *value)
         pipeline.execute()
 
-def process_image(source):
+def darken_image(image, darken_factor):
+    # Apply an enhancement filter to darken the image
+    enhancer = ImageEnhance.Brightness(image)
+    return enhancer.enhance(darken_factor)
+
+def process_image(source, darken_factor=1.0):
     # Determine if source is a URL or a local file path
     if source.startswith('http://') or source.startswith('https://'):
         response = requests.get(source)
@@ -29,15 +34,18 @@ def process_image(source):
         img = Image.open(source)
 
     with img as image:
+        # Darken the image
+        image_darkened = darken_image(image, darken_factor)
+
         # Calculate the size to crop the central part of the image
-        min_dimension = min(image.size)
-        left = (image.width - min_dimension) / 2
-        top = (image.height - min_dimension) / 2
-        right = (image.width + min_dimension) / 2
-        bottom = (image.height + min_dimension) / 2
+        min_dimension = min(image_darkened.size)
+        left = (image_darkened.width - min_dimension) / 2
+        top = (image_darkened.height - min_dimension) / 2
+        right = (image_darkened.width + min_dimension) / 2
+        bottom = (image_darkened.height + min_dimension) / 2
 
         # Crop the center of the image
-        img_cropped = image.crop((left, top, right, bottom))
+        img_cropped = image_darkened.crop((left, top, right, bottom))
 
         # Resize to 24x24 pixels
         img_resized = img_cropped.resize((24, 24), Image.Resampling.LANCZOS)
@@ -46,10 +54,15 @@ def process_image(source):
         for y in range(24):
             for x in range(24):
                 # Get the RGB values of the pixel
+                #r, g, b = img_resized.getpixel((x, y))
+                threshold = 10  # Define the threshold for "almost black"
                 r, g, b = img_resized.getpixel((x, y))
+                if r < threshold and g < threshold and b < threshold:
+                    r, g, b = 0, 0, 0  # Set the pixel to black
                 set_display_value(x, y, (r, g, b))
 
 if __name__ == "__main__":
-    # Take the image source from the command line argument
+    # Take the image source and darken factor from the command line arguments
     image_source = sys.argv[1]
-    process_image(image_source)
+    darken_factor = float(sys.argv[2]) if len(sys.argv) > 2 else 1.0
+    process_image(image_source, darken_factor)
