@@ -44,19 +44,28 @@ def process_image(source, darken_factor=1.0):
         right = (image_darkened.width + min_dimension) / 2
         bottom = (image_darkened.height + min_dimension) / 2
 
+        print("Cropping image to: ", left, top, right, bottom)
+
         # Crop the center of the image
         img_cropped = image_darkened.crop((left, top, right, bottom))
 
         # Resize to 24x24 pixels
         img_resized = img_cropped.resize((24, 24), Image.Resampling.LANCZOS)
 
+        print(img_resized.size)
+
         # Process the 24x24 image and write to Redis
         for y in range(24):
             for x in range(24):
                 # Get the RGB values of the pixel
+                print("Pixel: ", x, y)
                 #r, g, b = img_resized.getpixel((x, y))
                 threshold = 10  # Define the threshold for "almost black"
-                r, g, b = img_resized.getpixel((x, y))
+                pixel = img_resized.getpixel((x, y))
+                r = pixel[0]
+                g = pixel[1]
+                b = pixel[2]
+                #r, g, b = img_resized.getpixel((x, y))
                 if r < threshold and g < threshold and b < threshold:
                     r, g, b = 0, 0, 0  # Set the pixel to black
                 set_display_value(x, y, (r, g, b))
