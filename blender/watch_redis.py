@@ -1,6 +1,7 @@
 import json
 import bpy
 import redis
+import time
 
 redis_client = redis.StrictRedis(host='10.10.10.1', port=6379, db=0)
 
@@ -43,12 +44,16 @@ def watch_redis(data):
                     rgb_value = rgb_value.decode('utf-8')
                     rgb_dict = json.loads(rgb_value)  # Parse the RGB JSON string
 
-                    print(f"Current RGB value for {redis_key}: {rgb_dict}")
+                    #print(f"Current RGB value for {redis_key}: {rgb_dict}")
                     material = get_material(object_name)
 
                     if material:
                         set_material_color(material, rgb_dict)
-                    
+
+while False:
+    watch_redis(lights)
+    bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
+    time.sleep(1)  # Adjust the sleep time as needed
 
 watch_redis(lights)
 print("done")
