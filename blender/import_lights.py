@@ -101,7 +101,7 @@ def load_data(data, max_lights_per_group=5000):
                     1,
                     group_collection,
                 )
-                assign_emission_material(sphere, color=(0, 1, 0), strength=10)
+                assign_emission_material(sphere, color=(0, 1, 0), strength=1)
                 lights_added += 1
 
 
