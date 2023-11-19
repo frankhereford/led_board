@@ -30,7 +30,8 @@ def render_scrolling_text_updated(
     # Load a larger font
     try:
         # Change 'arial.ttf' to the path of a TrueType font available on your system if needed
-        font = ImageFont.truetype("DejaVuSans.ttf", font_size)
+        font = ImageFont.truetype("MonaspaceNeon-MediumItalic.otf", font_size)
+        #font = ImageFont.truetype("DejaVuSans.ttf", font_size)
     except IOError:
         print("Default font not found, using load_default() instead.")
         font = ImageFont.load_default()
