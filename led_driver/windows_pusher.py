@@ -45,7 +45,7 @@ def render_scrolling_text_updated(
     draw = ImageDraw.Draw(img)
 
     # Draw the text onto the image
-    draw.text((width, (height - text_height) // 2), text, font=font, fill=1)
+    draw.text((width, ((height - text_height) // 2) - 5), text, font=font, fill=1)
 
     # Scroll the text
     frames = []
@@ -57,8 +57,9 @@ def render_scrolling_text_updated(
             # Extract the current frame from the image
             frame = img.crop((i, 0, i + width, height))
             # Flip the frame vertically
-            flipped_frame = np.flipud(np.array(frame))
-            frames.append(flipped_frame)
+            #flipped_frame = np.flipud(np.array(frame))
+            #frames.append(flipped_frame)
+            frames.append(np.array(frame))
 
 
         frame_data = np.array(frame)
@@ -123,10 +124,26 @@ def blank_canvas():
                 redis_client.set(key, json.dumps({'r': 0, 'g': 0, 'b': 0}))
 
 
+def replace_value_atomic(redis_client, key, value):
+    """
+    Replaces the value of a key in Redis atomically using pipeline.
+    
+    :param redis_client: The Redis client instance.
+    :param key: The key whose value is to be replaced.
+    :param value: The new value to set for the key.
+    """
+    pipeline = redis_client.pipeline()
+    pipeline.delete(key)
+    pipeline.set(key, value)
+    pipeline.execute()
+
+
 # Example usage
 frames = render_scrolling_text_updated(
-    "Hello, Austin!", width=32, height=32, scroll_speed=2, font_size=36
+    "HI AUSTIN!", width=32, height=32, scroll_speed=2, font_size=30
 )
+
+blank_canvas()
 
 
 light_linkage = []
@@ -151,15 +168,45 @@ for y in range(32):
                         light_linkage[y][x].append(key)
 
 for frame in frames:
-    time.sleep(.1)
+    time.sleep(.15)
+
+    frame = frame[::-1]
+    #print(frame)
+    #quit()
+
+    for y, row in enumerate(frame):
+        for x, pixel in enumerate(row):
+            if pixel:
+                print("X", end="")
+            else:
+                print(".", end="")
+        print()
+    print()
+
+
+    light_state = windows_layout.copy()
+
     for y, row in enumerate(frame):
         for x, pixel in enumerate(row):
             for key in light_linkage[y][x]:
+                ip, index= key.split(":")
+                index = int(index)
+
+                if ip == '10.10.10.154':
+                    group_name = 'Left Window'
+                elif ip == '10.10.10.155':
+                    group_name = 'Right Window'
+
                 if pixel:
-                    redis_client.set(key, json.dumps({'r': 255, 'g': 0, 'b': 0}))
+                    #print("ip: ", ip, "index: ", index)
+                    #print("light_state[ip_address][group_name][index]: ", light_state[ip][group_name][index])
+                    light_state[ip][group_name][index]['color'] = {'r': 0, 'g': 0, 'b': 255}
+                    #redis_client.set(key, json.dumps({'r': 0, 'g': 0, 'b': 255}))
                 else:
-                    redis_client.set(key, json.dumps({'r': 0, 'g': 0, 'b': 255}))
+                    light_state[ip][group_name][index]['color'] = {'r': 0, 'g': 0, 'b': 0}
+                    #redis_client.set(key, json.dumps({'r': 0, 'g': 0, 'b': 0}))
         
+    replace_value_atomic(redis_client, 'windows_layout', json.dumps(light_state))
 
 quit()
 
