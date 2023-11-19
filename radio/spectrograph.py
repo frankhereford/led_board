@@ -8,6 +8,7 @@ import numpy as np
 import sounddevice as sd
 
 usage_line = " press <enter> to quit, +<enter> or -<enter> to change scaling "
+#python ./spectrograph.py -d 7 -g 130 -r 100 600 -b 15
 
 
 def int_or_str(text):
