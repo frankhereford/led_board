@@ -13,17 +13,16 @@ from collections import deque
 
 np.set_printoptions(
     linewidth=200,
-    formatter={'int': '{:4d}'.format},
-    )
+    formatter={"int": "{:4d}".format},
+)
 
 usage_line = " press <enter> to quit, +<enter> or -<enter> to change scaling "
-#python ./spectrograph.py -r 200 600 -b 25 -c 32 -g 500 -s -d 7
+# python ./spectrograph.py -r 200 600 -b 25 -c 32 -g 500 -s -d 7
 
 with open("../data/test_windows_data.json", "r") as file:
     windows_layout = json.load(file)
 
 redis_client = redis.Redis(host="10.10.10.1", port=6379, db=0)
-
 
 
 def int_or_str(text):
@@ -32,6 +31,7 @@ def int_or_str(text):
         return int(text)
     except ValueError:
         return text
+
 
 def is_within_area(area_coords, point_coords):
     """
@@ -47,16 +47,17 @@ def is_within_area(area_coords, point_coords):
 
     # Transform the point coordinates to 32x32 space
     transformed_x = (point_coords[0] + 1) * 16  # Transforming X from [-1, 1] to [0, 32]
-    transformed_y = point_coords[1] * 32        # Transforming Y from [0, 1] to [0, 32]
+    transformed_y = point_coords[1] * 32  # Transforming Y from [0, 1] to [0, 32]
 
     # Check if the transformed point is within the area defined by area_coords
     # The area is defined from (x, y) to (x+1, y+1)
-    if (area_coords[0] <= transformed_x < area_coords[0] + 1 and
-        area_coords[1] <= transformed_y < area_coords[1] + 1):
+    if (
+        area_coords[0] <= transformed_x < area_coords[0] + 1
+        and area_coords[1] <= transformed_y < area_coords[1] + 1
+    ):
         return True
     else:
         return False
-
 
 
 try:
@@ -92,7 +93,11 @@ parser.add_argument(
     "-c", "--columns", type=int, default=32, help="width of spectrogram"
 )
 parser.add_argument(
-    "-d", "--device", type=int_or_str, default=7, help="input device (numeric ID or substring)"
+    "-d",
+    "--device",
+    type=int_or_str,
+    default=7,
+    help="input device (numeric ID or substring)",
 )
 parser.add_argument(
     "-g",
@@ -112,7 +117,8 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "-s", "--hide-spectrogram",
+    "-s",
+    "--hide-spectrogram",
     action="store_false",
     default=True,
     help="Enable this option to hide the spectrogram.",
@@ -145,7 +151,6 @@ try:
 
     sample_buffer = deque(maxlen=32)
 
-
     light_linkage = []
 
     for y in range(32):
@@ -167,13 +172,12 @@ try:
                         if is_within_area((x, y), light_coordinate):
                             light_linkage[y][x].append(key)
 
-
     def spectrogram_color(value):
         if value < 0 or value > 255:
             raise ValueError("Value must be between 0 and 255")
 
         if value == 0:
-            return {'r': 0, 'g': 0, 'b': 0}
+            return {"r": 0, "g": 0, "b": 0}
 
         # Define the transition points
         blue_end = 255 // 6
@@ -194,13 +198,12 @@ try:
             g = int(255 * (1 - (value - green_end) / (255 - green_end)))
             r = int(255 * ((value - green_end) / (255 - green_end)))
 
-        return {'r': r, 'g': g, 'b': b}
-
+        return {"r": r, "g": g, "b": b}
 
     def convert_to_color_array(arr):
         if arr.shape != (32, 32):
             return
-            #raise ValueError("Array must be 32x32 in size")
+            # raise ValueError("Array must be 32x32 in size")
 
         # Create an empty array to hold the RGB values
         color_array = np.empty((32, 32), dtype=object)
@@ -215,7 +218,7 @@ try:
     def replace_value_atomic(redis_client, key, value):
         """
         Replaces the value of a key in Redis atomically using pipeline.
-        
+
         :param redis_client: The Redis client instance.
         :param key: The key whose value is to be replaced.
         :param value: The new value to set for the key.
@@ -224,7 +227,6 @@ try:
         pipeline.delete(key)
         pipeline.set(key, value)
         pipeline.execute()
-
 
     def callback(indata, frames, time, status):
         if status:
@@ -242,10 +244,10 @@ try:
             sample = magnitude[low_bin : low_bin + args.columns]
             sample_buffer.append(sample)
             sample_array = np.array(sample_buffer)
-            #normalized_array = sample_array * (255 / sample_array.max()) # always some noise
+            # normalized_array = sample_array * (255 / sample_array.max()) # always some noise
             normalized_array = sample_array * 255
             normalized_array = normalized_array.astype(np.uint8)
-            #print(normalized_array[-1])
+            # print(normalized_array[-1])
             color_matrix = convert_to_color_array(normalized_array)
             if color_matrix is not None:
                 light_state = windows_layout.copy()
@@ -253,16 +255,20 @@ try:
                 for y in range(32):
                     for x in range(32):
                         for key in light_linkage[x][y]:
-                            ip, index= key.split(":")
+                            ip, index = key.split(":")
                             index = int(index)
 
-                            if ip == '10.10.10.154':
-                                group_name = 'Left Window'
-                            elif ip == '10.10.10.155':
-                                group_name = 'Right Window'
+                            if ip == "10.10.10.154":
+                                group_name = "Left Window"
+                            elif ip == "10.10.10.155":
+                                group_name = "Right Window"
 
-                            light_state[ip][group_name][index]['color'] = color_matrix[y, x]
-                replace_value_atomic(redis_client, 'windows_layout', json.dumps(light_state))
+                            light_state[ip][group_name][index]["color"] = color_matrix[
+                                y, x
+                            ]
+                replace_value_atomic(
+                    redis_client, "windows_layout", json.dumps(light_state)
+                )
 
         else:
             pass
