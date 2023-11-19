@@ -53,7 +53,7 @@ def watch_redis(data):
 while False:
     watch_redis(lights)
     bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
-    time.sleep(5)  # Adjust the sleep time as needed
+    time.sleep(1)  # Adjust the sleep time as needed
 
 watch_redis(lights)
 print("done")

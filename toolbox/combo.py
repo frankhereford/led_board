@@ -7,7 +7,7 @@ from xled_plus.multicontrol import MultiHighControlInterface
 from xled_plus.effect_base import Effect
 from xled_plus.ledcolor import hsl_color
 
-board = MultiHighControlInterface(['10.10.10.151', '10.10.10.149'])
+board = MultiHighControlInterface(['10.10.10.154', '10.10.10.155'])
 
 class RedisEffect(Effect):
     def __init__(self, ctr):
