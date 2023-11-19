@@ -3,10 +3,16 @@ import json
 import random
 import time
 
-with open('lights.json', 'r') as file:
+with open('../data/lights.json', 'r') as file:
     house_layout = json.load(file)
 
 redis_client = redis.Redis(host='localhost', port=6379, db=0)
+
+def print_lengths_of_groups(data):
+    for ip in house_layout:
+        for group in house_layout[ip]:
+            print(f"IP: {ip}, Group: {group}, Length: {len(house_layout[ip][group])}")
+
 
 if True:
     for ip in house_layout:
@@ -29,9 +35,12 @@ active_pixels = []
 iteration = 0
 
 while True:
-    # time.sleep(0.05)
+    #input()
     print(f"Active pixels: {len(active_pixels)}")
     print(f"Iteration: {iteration}")
+    print("Length of groups:")
+    print_lengths_of_groups(house_layout)
+
     if iteration == 0:
         iteration += 1
         random_element = random.choice(all_pixels)

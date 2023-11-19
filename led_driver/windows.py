@@ -10,7 +10,7 @@ from xled_plus.effect_base import Effect
 from xled_plus.highcontrol import HighControlInterface
 from xled.simple_udp import SimpleUDPClient
 
-with open('../data/lights.json', 'r') as file:
+with open('../data/test_windows_data.json', 'r') as file:
     house_layout = json.load(file)
 
 redis_client = redis.Redis(host='localhost', port=6379, db=0)
@@ -21,9 +21,8 @@ class BleakEffect(Effect):
     
     def reset(self, numframes):
         strings = {
-            '10.10.10.78': 400,
-            '10.10.10.151': 600,
-            '10.10.10.152': 600,
+            '10.10.10.154': 210,
+            '10.10.10.155': 210,
         }
 
     def ticking_color(self, index):
