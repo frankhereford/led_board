@@ -1,13 +1,15 @@
+import time
 import json
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 import math
 import redis
+import random
 
-with open('../data/test_windows_data.json', 'r') as file:
+with open("../data/test_windows_data.json", "r") as file:
     windows_layout = json.load(file)
 
-redis_client = redis.Redis(host='localhost', port=6379, db=0)
+redis_client = redis.Redis(host="localhost", port=6379, db=0)
 
 
 def render_scrolling_text_updated(
@@ -69,7 +71,22 @@ def map_coordinate(x, y):
 
 
 def distance(point1, point2):
-    return math.sqrt((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2)
+    return math.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
+
+def random_color():
+    return {
+        'r': random.randint(0, 255),
+        'g': random.randint(0, 255),
+        'b': random.randint(0, 255)
+    }
+
+def blank_canvas():
+    for ip in windows_layout:
+        for group in windows_layout[ip]:
+            for light in windows_layout[ip][group]:
+                index = light['index']
+                key = f"{ip}:{index}"
+                redis_client.set(key, json.dumps({'r': 0, 'g': 0, 'b': 0}))
 
 
 # Example usage
@@ -77,16 +94,68 @@ frames = render_scrolling_text_updated(
     "Hello, Austin!", width=32, height=32, scroll_speed=2, font_size=36
 )
 
+light_linkage = []
+
+for y in range(32):
+    light_linkage.append([])
+    for x in range(32):
+        light_linkage[y].append([])
+        font_coordinate = map_coordinate(x, 31 - y)
+        #print(font_coordinate)
+
+        for ip in windows_layout:
+            for group in windows_layout[ip]:
+                for light in windows_layout[ip][group]:
+                    index = light["index"]
+                    key = f"{ip}:{index}"
+
+                    light_coordinate = (
+                        light["coordinate"]["x"],
+                        light["coordinate"]["y"],
+                    )
+
+                    if distance(light_coordinate, font_coordinate) < 0.1:
+                        light_linkage[y][x].append(key)
+
+
+print("Light linkage: ", light_linkage[10][10])
+
+for frame in frames:
+    for y, row in enumerate(frame):
+        for x, pixel in enumerate(row):
+            if pixel:
+                print("X", end="")
+            else:
+                print(".", end="")
+        print()
+    print()
+
+
+    time.sleep(.2)
+    blank_canvas()
+    for y, row in enumerate(frame):
+        for x, pixel in enumerate(row):
+            if pixel:
+                for key in light_linkage[y][x]:
+                    redis_client.set(key, json.dumps({'r': 255, 'g': 0, 'b': 0}))
+            else:
+                pass
+                #print(".", end="")
+
+
+
+
+quit()
+
 # Print the first few frames as an example
 for frame in frames:
     for y, row in enumerate(frame):
         for x, pixel in enumerate(row):
             if pixel:
-                print("X", end='')
+                print("X", end="")
             else:
-                print(".", end='')
+                print(".", end="")
         print()
-
 
     for y, row in enumerate(frame):
         for x, pixel in enumerate(row):
@@ -95,17 +164,22 @@ for frame in frames:
             for ip in windows_layout:
                 for group in windows_layout[ip]:
                     for light in windows_layout[ip][group]:
-                        index = light['index']
+                        index = light["index"]
                         key = f"{ip}:{index}"
 
-                        light_coordinate = (light['coordinate']['x'], light['coordinate']['y'])
-                        #print(light_coordinate)
-                        if distance(light_coordinate, font_coordinate) < .3:
-                            redis_client.set(key, json.dumps({'r': 255, 'g': 0, 'b': 0}))
+                        light_coordinate = (
+                            light["coordinate"]["x"],
+                            light["coordinate"]["y"],
+                        )
+                        # print(light_coordinate)
+                        if distance(light_coordinate, font_coordinate) < 0.3:
+                            redis_client.set(
+                                key, json.dumps({"r": 255, "g": 0, "b": 0})
+                            )
                         else:
-                            redis_client.set(key, json.dumps({'r': 0, 'g': 0, 'b': 255}))
+                            redis_client.set(
+                                key, json.dumps({"r": 0, "g": 0, "b": 255})
+                            )
 
-
-
-                        #print(light_coordinates)
-                        #redis_client.set(key, json.dumps({'r': 0, 'g': 0, 'b': 0}))
+                        # print(light_coordinates)
+                        # redis_client.set(key, json.dumps({'r': 0, 'g': 0, 'b': 0}))
