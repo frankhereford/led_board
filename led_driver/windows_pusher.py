@@ -52,6 +52,15 @@ def render_scrolling_text_updated(
     for i in range(0, img_width - width + 1, scroll_speed):
         # Extract the current frame from the image
         frame = img.crop((i, 0, i + width, height))
+
+        for i in range(0, img_width - width + 1, scroll_speed):
+            # Extract the current frame from the image
+            frame = img.crop((i, 0, i + width, height))
+            # Flip the frame vertically
+            flipped_frame = np.flipud(np.array(frame))
+            frames.append(flipped_frame)
+
+
         frame_data = np.array(frame)
         frames.append(frame_data)
 
@@ -73,6 +82,31 @@ def map_coordinate(x, y):
 def distance(point1, point2):
     return math.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
 
+def is_within_area(area_coords, point_coords):
+    """
+    Function to check if the transformed point is within the defined area.
+
+    Parameters:
+    area_coords (tuple): A tuple of two integers, each between 0 and 31.
+    point_coords (tuple): A tuple of two floats, X between -1 and 1, Y between 0 and 1.
+
+    Returns:
+    bool: True if the transformed point is within the area, otherwise False.
+    """
+
+    # Transform the point coordinates to 32x32 space
+    transformed_x = (point_coords[0] + 1) * 16  # Transforming X from [-1, 1] to [0, 32]
+    transformed_y = point_coords[1] * 32        # Transforming Y from [0, 1] to [0, 32]
+
+    # Check if the transformed point is within the area defined by area_coords
+    # The area is defined from (x, y) to (x+1, y+1)
+    if (area_coords[0] <= transformed_x < area_coords[0] + 1 and
+        area_coords[1] <= transformed_y < area_coords[1] + 1):
+        return True
+    else:
+        return False
+
+
 def random_color():
     return {
         'r': random.randint(0, 255),
@@ -93,6 +127,41 @@ def blank_canvas():
 frames = render_scrolling_text_updated(
     "Hello, Austin!", width=32, height=32, scroll_speed=2, font_size=36
 )
+
+
+light_linkage = []
+
+for y in range(32):
+    light_linkage.append([])
+    for x in range(32):
+        light_linkage[y].append([])
+
+        for ip in windows_layout:
+            for group in windows_layout[ip]:
+                for light in windows_layout[ip][group]:
+                    index = light["index"]
+                    key = f"{ip}:{index}"
+
+                    light_coordinate = (
+                        light["coordinate"]["x"],
+                        light["coordinate"]["y"],
+                    )
+
+                    if is_within_area((x, y), light_coordinate):
+                        light_linkage[y][x].append(key)
+
+for frame in frames:
+    time.sleep(.1)
+    for y, row in enumerate(frame):
+        for x, pixel in enumerate(row):
+            for key in light_linkage[y][x]:
+                if pixel:
+                    redis_client.set(key, json.dumps({'r': 255, 'g': 0, 'b': 0}))
+                else:
+                    redis_client.set(key, json.dumps({'r': 0, 'g': 0, 'b': 255}))
+        
+
+quit()
 
 light_linkage = []
 
