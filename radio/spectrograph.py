@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Show a text-mode spectrogram using live microphone data."""
 import argparse
 import math
 import shutil
