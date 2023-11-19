@@ -10,7 +10,7 @@ from xled_plus.effect_base import Effect
 from xled_plus.highcontrol import HighControlInterface
 from xled.simple_udp import SimpleUDPClient
 
-with open('../data/lights.json', 'r') as file:
+with open('../data/test_windows_data.json', 'r') as file:
     house_layout = json.load(file)
 
 redis_client = redis.Redis(host='localhost', port=6379, db=0)
