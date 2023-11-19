@@ -5,11 +5,14 @@ import math
 import shutil
 import redis
 import json
+import itertools
 
 import numpy as np
 import sounddevice as sd
 
 from collections import deque
+
+from PIL import Image, ImageDraw, ImageFont
 
 np.set_printoptions(
     linewidth=200,
@@ -23,6 +26,70 @@ with open("../data/test_windows_data.json", "r") as file:
     windows_layout = json.load(file)
 
 redis_client = redis.Redis(host="10.10.10.1", port=6379, db=0)
+
+def render_scrolling_text_updated(
+    text, width=32, height=32, scroll_speed=1, font_size=24
+):
+    """
+    Render scrolling text for a low-resolution display, updated for Pillow 9.5.0.
+    The font size is increased to make the text take up more of the display.
+
+    :param text: The text to be displayed.
+    :param width: Width of the display in pixels.
+    :param height: Height of the display in pixels.
+    :param scroll_speed: Number of pixels to shift the text per frame.
+    :param font_size: Font size for the text.
+    :return: A list of frames, each frame being a 2D array representing the display.
+    """
+
+    # Load a larger font
+    try:
+        # Change 'arial.ttf' to the path of a TrueType font available on your system if needed
+        font = ImageFont.truetype("MonaspaceArgon-Bold.otf", font_size)
+    except IOError:
+        print("Default font not found, using load_default() instead.")
+        font = ImageFont.load_default()
+
+    # Determine text size using getbbox and create an image wide enough to contain the scrolled text
+    bbox = font.getbbox(text)
+    text_width, text_height = bbox[2], bbox[3]
+    img_width = text_width + width
+    img = Image.new("1", (img_width, height), color=0)
+
+    # Create a drawing context
+    draw = ImageDraw.Draw(img)
+
+    # Draw the text onto the image
+    draw.text((width, ((height - text_height) // 2) - 5), text, font=font, fill=1) # change the subtracted number to scoot up text
+
+    # Scroll the text
+    frames = []
+    for i in range(0, img_width - width + 1, scroll_speed):
+        # Extract the current frame from the image
+        frame = img.crop((i, 0, i + width, height))
+
+        for i in range(0, img_width + 1000, scroll_speed):
+            # Extract the current frame from the image
+            frame = img.crop((i, 0, i + width, height))
+            # Flip the frame vertically
+            #flipped_frame = np.flipud(np.array(frame))
+            #frames.append(flipped_frame)
+            frames.append(np.array(frame))
+
+
+        frame_data = np.array(frame)
+        frames.append(frame_data)
+
+    return frames
+
+
+# Create an iterator that repeats each item 4 times
+raw_frames = render_scrolling_text_updated(
+    "KUTX", width=32, height=32, scroll_speed=1, font_size=30
+)
+repeated_data = itertools.chain.from_iterable(itertools.repeat(x, 3) for x in raw_frames)
+text_frames = itertools.cycle(repeated_data)
+
 
 
 def int_or_str(text):
@@ -123,6 +190,15 @@ parser.add_argument(
     default=True,
     help="Enable this option to hide the spectrogram.",
 )
+
+parser.add_argument(
+    "-t",
+    "--show-scroll",
+    action="store_true",
+    default=False,
+    help="Enable this option to show scrolling in the standard output.",
+)
+
 
 
 args = parser.parse_args(remaining)
@@ -233,14 +309,36 @@ try:
             text = " " + str(status) + " "
             print("\x1b[34;40m", text.center(args.columns, "#"), "\x1b[0m", sep="")
         if any(indata):
+            text_frame = next(text_frames)
+
+            has_any_text = text_frame.max()
+
+            gain = args.gain
+            if has_any_text:
+                gain = 50
+
             magnitude = np.abs(np.fft.rfft(indata[:, 0], n=fftsize))
-            magnitude *= args.gain / fftsize
+            magnitude *= gain / fftsize
             if args.hide_spectrogram:
                 line = (
                     gradient[int(np.clip(x, 0, 1) * (len(gradient) - 1))]
                     for x in magnitude[low_bin : low_bin + args.columns]
                 )
                 print(*line, sep="", end="\x1b[0m\n")
+            
+
+            if args.show_scroll:
+                for y, row in enumerate(text_frame):
+                    for x, pixel in enumerate(row):
+                        if pixel:
+                            print("X", end="")
+                        else:
+                            print(".", end="")
+                    print()
+                print()
+
+            text_frame = np.flip(text_frame, axis=0)
+
             sample = magnitude[low_bin : low_bin + args.columns]
             sample_buffer.append(sample)
             sample_array = np.array(sample_buffer)
@@ -263,9 +361,17 @@ try:
                             elif ip == "10.10.10.155":
                                 group_name = "Right Window"
 
-                            light_state[ip][group_name][index]["color"] = color_matrix[
-                                y, x
-                            ]
+                            pixel = text_frame[x][y]
+                            if pixel:
+                                light_state[ip][group_name][index]["color"] = {
+                                    "r": 255,
+                                    "g": 255,
+                                    "b": 255,
+                                }
+                            else:
+                                light_state[ip][group_name][index]["color"] = color_matrix[
+                                    y, x
+                                ]
                 replace_value_atomic(
                     redis_client, "windows_layout", json.dumps(light_state)
                 )
