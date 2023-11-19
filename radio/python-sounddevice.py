@@ -83,7 +83,6 @@ try:
         if any(indata):
             magnitude = np.abs(np.fft.rfft(indata[:, 0], n=fftsize))
             magnitude *= args.gain / fftsize
-            #print(magnitude)
             line = (gradient[int(np.clip(x, 0, 1) * (len(gradient) - 1))]
                     for x in magnitude[low_bin:low_bin + args.columns])
             print(*line, sep='', end='\x1b[0m\n')
