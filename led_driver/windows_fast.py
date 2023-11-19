@@ -50,34 +50,13 @@ class BleakEffect(Effect):
 
             return self.dict_to_rgb(color_data[ip][group_name][index]['color'])
             print(color_data[ip][group_name][index]['color'])
-            #return(color_data[ip][group_name][index]['color'])
-            return (255,0,0)
         else:
             return (0, 0, 0)
-
-        #print(color_data[ip][group_name][index]['color'])
-        #print(color_data[ip])
-        
-
-        
-        return (0, 0, 0)
-        
-        if False:
-            if color_data is None:
-                # Set default value to black
-                default_color = {'r': 0, 'g': 0, 'b': 0}
-                redis_client.set(key, json.dumps(default_color))
-                return (0, 0, 0)
-            else:
-                # Load the color data and return as a tuple
-                color_data = json.loads(color_data)
-                return (color_data['r'], color_data['g'], color_data['b'])
 
 
     def getnext(self):
         return self.ctr.make_func_pattern(lambda index: self.get_light_color(index))
         #return self.ctr.make_layout_pattern(lambda position: self.get_pixel(*position))
-
 
 def bleak(ip):
     print("Starting bleak effect on: ", ip)
