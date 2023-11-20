@@ -202,15 +202,30 @@ parser.add_argument(
     help="Enable this option to show scrolling text on the lights. Defaults to 300 if no value is provided.",
 )
 
+parser.add_argument(
+    "-w",
+    "--message",
+    type=str,
+    nargs='?',
+    const="KUTX",
+    default="KUTX",
+    help="Specify a message to display. Defaults to 'KUTX'.",
+)
 
 
 
 args = parser.parse_args(remaining)
 
-# Create an iterator that repeats each item 4 times
-raw_frames = render_scrolling_text_updated(
-    "DTS", width=32, height=32, scroll_speed=1, font_size=30, extra_frames=args.render_scroll
-)
+
+if args.render_scroll is not None:
+    # Create an iterator that repeats each item 4 times
+    raw_frames = render_scrolling_text_updated(
+        args.message, width=32, height=32, scroll_speed=1, font_size=30, extra_frames=args.render_scroll
+    )
+else:
+    raw_frames = render_scrolling_text_updated(
+        args.message, width=32, height=32, scroll_speed=1, font_size=30
+    )
 repeated_data = itertools.chain.from_iterable(itertools.repeat(x, 3) for x in raw_frames)
 text_frames = itertools.cycle(repeated_data)
 
