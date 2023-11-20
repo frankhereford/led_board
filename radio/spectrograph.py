@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Show a text-mode spectrogram using live microphone data."""
+"""Show a text-mode spectrogram and xled lights spectrogram using real time audio data."""
+
 import argparse
 import math
 import shutil
@@ -199,6 +200,13 @@ parser.add_argument(
     help="Enable this option to show scrolling in the standard output.",
 )
 
+parser.add_argument(
+    "-m",
+    "--render-scroll",
+    action="store_true",
+    default=False,
+    help="Enable this option to show scrolling text on the lights.",
+)
 
 
 args = parser.parse_args(remaining)
@@ -314,7 +322,7 @@ try:
             has_any_text = text_frame.max()
 
             gain = args.gain
-            if has_any_text:
+            if has_any_text and args.render_scroll:
                 gain = 50
 
             magnitude = np.abs(np.fft.rfft(indata[:, 0], n=fftsize))
@@ -327,7 +335,7 @@ try:
                 print(*line, sep="", end="\x1b[0m\n")
             
 
-            if args.show_scroll:
+            if args.show_scroll and args.render_scroll:
                 for y, row in enumerate(text_frame):
                     for x, pixel in enumerate(row):
                         if pixel:
@@ -362,7 +370,7 @@ try:
                                 group_name = "Right Window"
 
                             pixel = text_frame[x][y]
-                            if pixel:
+                            if pixel and args.render_scroll:
                                 light_state[ip][group_name][index]["color"] = {
                                     "r": 255,
                                     "g": 255,
