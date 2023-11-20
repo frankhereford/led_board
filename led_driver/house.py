@@ -36,6 +36,17 @@ class BleakEffect(Effect):
         print(self.ctr.host)
         return (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
+    def get_light_color_fast(self, index):
+        color_data_json = redis_client.get('house_layout')
+        if not color_data_json:
+            return (0, 0, 0)
+        color_data = json.loads(color_data_json.decode('utf-8'))
+        ip = self.ctr.host
+        if 'color' in color_data[ip][index]:
+            return self.dict_to_rgb(color_data[ip][index]['color'])
+        else:
+            return (0, 0, 0)
+
     def get_light_color(self, index):
         ip = self.ctr.host
         key = f"{ip}:{index}"
@@ -53,7 +64,7 @@ class BleakEffect(Effect):
 
 
     def getnext(self):
-        return self.ctr.make_func_pattern(lambda index: self.get_light_color(index))
+        return self.ctr.make_func_pattern(lambda index: self.get_light_color_fast(index))
         #return self.ctr.make_layout_pattern(lambda position: self.get_pixel(*position))
 
 
