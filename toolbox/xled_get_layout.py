@@ -6,7 +6,7 @@ import json
 lights = {}
 light_data = {}
 
-for ip in ['10.10.10.154', '10.10.10.155']:
+for ip in ['10.10.10.78', '10.10.10.151', '10.10.10.152', '10.10.10.154', '10.10.10.155']:
     control = xled.ControlInterface(ip)
     #print(control)
     response = control.get_led_layout()
@@ -18,6 +18,12 @@ for ip in ['10.10.10.154', '10.10.10.155']:
         group_name = 'Left Window'
     elif ip == '10.10.10.155':
         group_name = 'Right Window'
+    elif ip == '10.10.10.78':
+        group_name = 'Stoop Eve'
+    elif ip == '10.10.10.151':
+        group_name = 'Strings A'
+    elif ip == '10.10.10.152':
+        group_name = 'Strings B'
 
     light_data[ip] = {
         group_name : []
