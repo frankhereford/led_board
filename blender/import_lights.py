@@ -1,7 +1,7 @@
 import json
 import bpy
 
-light_data_file = "/Users/frank/Development/led_board/data/lights.json"
+light_data_file = "/Users/frank/Development/led_board/data/installation_raw_off_lights.json"
 # Reading the JSON file
 with open(light_data_file, "r") as file:
     lights = json.load(file)
@@ -33,7 +33,7 @@ def empty_scene():
 
 def create_icosphere(name, coordinates, size, subdivisions, collection):
     # Multiply x and y coordinates by 10
-    scaled_location = (coordinates["x"] * 10, coordinates["y"] * 10, coordinates["z"])
+    scaled_location = (coordinates["x"] * 1, coordinates["y"] * 1, coordinates["z"] * 1)
 
     bpy.ops.mesh.primitive_ico_sphere_add(
         radius=size, subdivisions=subdivisions, location=scaled_location
@@ -42,6 +42,20 @@ def create_icosphere(name, coordinates, size, subdivisions, collection):
     obj.name = name
 
     collection.objects.link(obj)  # Link the icosphere to the specified collection
+    bpy.context.collection.objects.unlink(obj)
+    return obj
+
+def create_empty(name, coordinates, collection, scale_factor):
+    scaled_location = (coordinates["x"] * 10, coordinates["y"] * 10, coordinates["z"])
+
+    bpy.ops.object.empty_add(type='PLAIN_AXES', location=scaled_location)
+    obj = bpy.context.active_object
+    obj.name = name
+
+    obj.empty_display_type = 'SPHERE'  # Set display type to sphere
+    obj.scale = (scale_factor, scale_factor, scale_factor)  # Scale according to the scale_factor
+
+    collection.objects.link(obj)
     bpy.context.collection.objects.unlink(obj)
     return obj
 
@@ -80,8 +94,7 @@ def assign_emission_material(obj, color=(1, 1, 1), strength=5.0):
         obj.data.materials.append(mat)
 
 
-def load_data(data, max_lights_per_group=5000):
-    # Iterate over the JSON data and create objects in Blender
+def load_data(data, max_lights_per_group=5000, use_empties=False):
     for ip in data:
         if ip not in bpy.data.collections:
             ip_collection = bpy.data.collections.new(ip)
@@ -94,16 +107,24 @@ def load_data(data, max_lights_per_group=5000):
             for light in data[ip][group]:
                 if lights_added >= max_lights_per_group:
                     break
-                sphere = create_icosphere(
-                    f"{ip}-{group}-{light['index']}",
-                    light["coordinate"],
-                    0.05,
-                    1,
-                    group_collection,
-                )
-                assign_emission_material(sphere, color=(0, 1, 0), strength=1)
+                if use_empties:
+                    empty = create_empty(
+                        f"{ip}-{light['index']}",
+                        light["coordinate"],
+                        group_collection,
+                        0.02,
+                    )
+                else:
+                    sphere = create_icosphere(
+                        f"{ip}-{light['index']}",
+                        light["coordinate"],
+                        0.005,
+                        1,
+                        group_collection,
+                    )
+                    assign_emission_material(sphere, color=(0, 1, 0), strength=1)
                 lights_added += 1
 
 
 empty_scene()
-load_data(lights)
+load_data(lights, use_empties=True, max_lights_per_group=50000)
