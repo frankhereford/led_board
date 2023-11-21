@@ -26,7 +26,7 @@ usage_line = " press <enter> to quit, +<enter> or -<enter> to change scaling "
 with open("../data/test_windows_data.json", "r") as file:
     windows_layout = json.load(file)
 
-redis_client = redis.Redis(host="10.10.10.1", port=6379, db=0)
+redis_client = redis.Redis(host="localhost", port=6379, db=0)
 
 def render_scrolling_text_updated(
     text, width=32, height=32, scroll_speed=1, font_size=24, extra_frames=100
