@@ -10,10 +10,29 @@ from xled_plus.effect_base import Effect
 from xled_plus.highcontrol import HighControlInterface
 from xled.simple_udp import SimpleUDPClient
 
+cache = {}
+cache_expiry = 0.01  # seconds
+
+
 with open('../data/lights.json', 'r') as file:
     house_layout = json.load(file)
 
 redis_client = redis.Redis(host='localhost', port=6379, db=0)
+
+def get_color_data_with_cache():
+    current_time = time.time()
+    if 'color_data' not in cache or current_time - cache['color_data']['timestamp'] > cache_expiry:
+        color_data_json = redis_client.get('installation_layout').decode('utf-8')
+
+        if color_data_json:
+            color_data = json.loads(color_data_json)
+            cache['color_data'] = {
+                'data': color_data,
+                'timestamp': current_time
+            }
+        else:
+            return None
+    return cache['color_data']['data']
 
 class BleakEffect(Effect):
     def __init__(self, ctr):
@@ -36,24 +55,31 @@ class BleakEffect(Effect):
         print(self.ctr.host)
         return (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
-    def get_light_color(self, index):
-        ip = self.ctr.host
-        key = f"{ip}:{index}"
-        color_data = redis_client.get(key)
-        
-        if color_data is None:
-            # Set default value to black
-            default_color = {'r': 0, 'g': 0, 'b': 0}
-            redis_client.set(key, json.dumps(default_color))
-            return (0, 0, 0)
-        else:
-            # Load the color data and return as a tuple
-            color_data = json.loads(color_data)
-            return (color_data['r'], color_data['g'], color_data['b'])
+    def dict_to_rgb(self, color_dict):
+        """
+        Converts a dictionary with keys 'r', 'g', and 'b' to an RGB tuple.
 
+        :param color_dict: Dictionary with the keys 'r', 'g', and 'b'.
+        :return: Tuple representing the RGB color.
+        """
+        return (color_dict['r'], color_dict['g'], color_dict['b'])
+
+
+    def get_light_color_fast(self, index):
+        color_data = get_color_data_with_cache()
+        if not color_data:
+            return (0, 0, 0)
+        ip = self.ctr.host
+        
+        group_name = next(iter(color_data[ip]))
+
+        if 'color' in color_data[ip][group_name][index]:
+            return self.dict_to_rgb(color_data[ip][group_name][index]['color'])
+        else:
+            return (0, 0, 0)
 
     def getnext(self):
-        return self.ctr.make_func_pattern(lambda index: self.get_light_color(index))
+        return self.ctr.make_func_pattern(lambda index: self.get_light_color_fast(index))
         #return self.ctr.make_layout_pattern(lambda position: self.get_pixel(*position))
 
 
