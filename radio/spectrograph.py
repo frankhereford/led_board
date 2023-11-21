@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Show a text-mode spectrogram using live microphone data."""
+"""Show a text-mode spectrogram and xled lights spectrogram using real time audio data."""
+
 import argparse
 import math
 import shutil
@@ -28,7 +29,7 @@ with open("../data/test_windows_data.json", "r") as file:
 redis_client = redis.Redis(host="10.10.10.1", port=6379, db=0)
 
 def render_scrolling_text_updated(
-    text, width=32, height=32, scroll_speed=1, font_size=24
+    text, width=32, height=32, scroll_speed=1, font_size=24, extra_frames=100
 ):
     """
     Render scrolling text for a low-resolution display, updated for Pillow 9.5.0.
@@ -44,7 +45,6 @@ def render_scrolling_text_updated(
 
     # Load a larger font
     try:
-        # Change 'arial.ttf' to the path of a TrueType font available on your system if needed
         font = ImageFont.truetype("MonaspaceArgon-Bold.otf", font_size)
     except IOError:
         print("Default font not found, using load_default() instead.")
@@ -68,7 +68,7 @@ def render_scrolling_text_updated(
         # Extract the current frame from the image
         frame = img.crop((i, 0, i + width, height))
 
-        for i in range(0, img_width + 1000, scroll_speed):
+        for i in range(0, img_width + extra_frames, scroll_speed):
             # Extract the current frame from the image
             frame = img.crop((i, 0, i + width, height))
             # Flip the frame vertically
@@ -82,13 +82,6 @@ def render_scrolling_text_updated(
 
     return frames
 
-
-# Create an iterator that repeats each item 4 times
-raw_frames = render_scrolling_text_updated(
-    "KUTX", width=32, height=32, scroll_speed=1, font_size=30
-)
-repeated_data = itertools.chain.from_iterable(itertools.repeat(x, 3) for x in raw_frames)
-text_frames = itertools.cycle(repeated_data)
 
 
 
@@ -199,9 +192,46 @@ parser.add_argument(
     help="Enable this option to show scrolling in the standard output.",
 )
 
+parser.add_argument(
+    "-m",
+    "--render-scroll",
+    type=int,
+    nargs='?',
+    const=300,
+    default=None,
+    help="Enable this option to show scrolling text on the lights. Defaults to 300 if no value is provided.",
+)
+
+parser.add_argument(
+    "-w",
+    "--message",
+    type=str,
+    nargs='?',
+    const="KUTX",
+    default="KUTX",
+    help="Specify a message to display. Defaults to 'KUTX'.",
+)
+
 
 
 args = parser.parse_args(remaining)
+
+
+if args.render_scroll is not None:
+    # Create an iterator that repeats each item 4 times
+    raw_frames = render_scrolling_text_updated(
+        args.message, width=32, height=32, scroll_speed=1, font_size=30, extra_frames=args.render_scroll
+    )
+else:
+    raw_frames = render_scrolling_text_updated(
+        args.message, width=32, height=32, scroll_speed=1, font_size=30
+    )
+repeated_data = itertools.chain.from_iterable(itertools.repeat(x, 3) for x in raw_frames)
+text_frames = itertools.cycle(repeated_data)
+
+
+
+
 low, high = args.range
 if high <= low:
     parser.error("HIGH must be greater than LOW")
@@ -310,11 +340,10 @@ try:
             print("\x1b[34;40m", text.center(args.columns, "#"), "\x1b[0m", sep="")
         if any(indata):
             text_frame = next(text_frames)
-
             has_any_text = text_frame.max()
 
             gain = args.gain
-            if has_any_text:
+            if has_any_text and args.render_scroll:
                 gain = 50
 
             magnitude = np.abs(np.fft.rfft(indata[:, 0], n=fftsize))
@@ -327,7 +356,7 @@ try:
                 print(*line, sep="", end="\x1b[0m\n")
             
 
-            if args.show_scroll:
+            if args.show_scroll and args.render_scroll:
                 for y, row in enumerate(text_frame):
                     for x, pixel in enumerate(row):
                         if pixel:
@@ -362,7 +391,7 @@ try:
                                 group_name = "Right Window"
 
                             pixel = text_frame[x][y]
-                            if pixel:
+                            if pixel and args.render_scroll:
                                 light_state[ip][group_name][index]["color"] = {
                                     "r": 255,
                                     "g": 255,
