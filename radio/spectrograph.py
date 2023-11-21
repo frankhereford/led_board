@@ -23,8 +23,8 @@ np.set_printoptions(
 usage_line = " press <enter> to quit, +<enter> or -<enter> to change scaling "
 # python ./spectrograph.py -r 200 600 -b 25 -c 32 -g 500 -s -d 7
 
-with open("../data/test_windows_data.json", "r") as file:
-    windows_layout = json.load(file)
+with open("../data/installation.json", "r") as file:
+    lights_layout = json.load(file)
 
 redis_client = redis.Redis(host="10.10.10.1", port=6379, db=0)
 
@@ -264,9 +264,9 @@ try:
         for x in range(64):
             light_linkage[y].append([])
 
-            for ip in windows_layout:
-                for group in windows_layout[ip]:
-                    for light in windows_layout[ip][group]:
+            for ip in lights_layout:
+                for group in lights_layout[ip]:
+                    for light in lights_layout[ip][group]:
                         index = light["index"]
                         key = f"{ip}:{index}"
 
@@ -377,7 +377,7 @@ try:
             # print(normalized_array[-1])
             color_matrix = convert_to_color_array(normalized_array)
             if color_matrix is not None:
-                light_state = windows_layout.copy()
+                light_state = lights_layout.copy()
 
                 for y in range(64):
                     for x in range(64):
@@ -385,10 +385,8 @@ try:
                             ip, index = key.split(":")
                             index = int(index)
 
-                            if ip == "10.10.10.154":
-                                group_name = "Left Window"
-                            elif ip == "10.10.10.155":
-                                group_name = "Right Window"
+                            group_name = next(iter(lights_layout[ip]))
+                            
 
                             pixe = text_frame[x][y]
                             if pixel and args.render_scroll:
