@@ -23,13 +23,13 @@ np.set_printoptions(
 usage_line = " press <enter> to quit, +<enter> or -<enter> to change scaling "
 # python ./spectrograph.py -r 200 600 -b 25 -c 32 -g 500 -s -d 7
 
-with open("../data/test_windows_data.json", "r") as file:
-    windows_layout = json.load(file)
+with open("../data/installation.json", "r") as file:
+    lights_layout = json.load(file)
 
 redis_client = redis.Redis(host="localhost", port=6379, db=0)
 
 def render_scrolling_text_updated(
-    text, width=32, height=32, scroll_speed=1, font_size=24, extra_frames=100
+    text, width=64, height=64, scroll_speed=1, font_size=24, extra_frames=100
 ):
     """
     Render scrolling text for a low-resolution display, updated for Pillow 9.5.0.
@@ -106,8 +106,8 @@ def is_within_area(area_coords, point_coords):
     """
 
     # Transform the point coordinates to 32x32 space
-    transformed_x = (point_coords[0] + 1) * 16  # Transforming X from [-1, 1] to [0, 32]
-    transformed_y = point_coords[1] * 32  # Transforming Y from [0, 1] to [0, 32]
+    transformed_x = (point_coords[0] + 1) * 32  # Transforming X from [-1, 1] to [0, 32]
+    transformed_y = point_coords[1] * 64  # Transforming Y from [0, 1] to [0, 32]
 
     # Check if the transformed point is within the area defined by area_coords
     # The area is defined from (x, y) to (x+1, y+1)
@@ -150,7 +150,7 @@ parser.add_argument(
     help="block size (default %(default)s milliseconds)",
 )
 parser.add_argument(
-    "-c", "--columns", type=int, default=32, help="width of spectrogram"
+    "-c", "--columns", type=int, default=64, help="width of spectrogram"
 )
 parser.add_argument(
     "-d",
@@ -220,11 +220,11 @@ args = parser.parse_args(remaining)
 if args.render_scroll is not None:
     # Create an iterator that repeats each item 4 times
     raw_frames = render_scrolling_text_updated(
-        args.message, width=32, height=32, scroll_speed=1, font_size=30, extra_frames=args.render_scroll
+        args.message, width=64, height=64, scroll_speed=1, font_size=30, extra_frames=args.render_scroll
     )
 else:
     raw_frames = render_scrolling_text_updated(
-        args.message, width=32, height=32, scroll_speed=1, font_size=30
+        args.message, width=64, height=64, scroll_speed=1, font_size=30
     )
 repeated_data = itertools.chain.from_iterable(itertools.repeat(x, 3) for x in raw_frames)
 text_frames = itertools.cycle(repeated_data)
@@ -255,18 +255,18 @@ try:
     fftsize = math.ceil(samplerate / delta_f)
     low_bin = math.floor(low / delta_f)
 
-    sample_buffer = deque(maxlen=32)
+    sample_buffer = deque(maxlen=64)
 
     light_linkage = []
 
-    for y in range(32):
+    for y in range(64):
         light_linkage.append([])
-        for x in range(32):
+        for x in range(64):
             light_linkage[y].append([])
 
-            for ip in windows_layout:
-                for group in windows_layout[ip]:
-                    for light in windows_layout[ip][group]:
+            for ip in lights_layout:
+                for group in lights_layout[ip]:
+                    for light in lights_layout[ip][group]:
                         index = light["index"]
                         key = f"{ip}:{index}"
 
@@ -307,12 +307,12 @@ try:
         return {"r": r, "g": g, "b": b}
 
     def convert_to_color_array(arr):
-        if arr.shape != (32, 32):
+        if arr.shape != (64, 64):
             return
-            # raise ValueError("Array must be 32x32 in size")
+            # raise ValueError("Array must be 64x64 in size")
 
         # Create an empty array to hold the RGB values
-        color_array = np.empty((32, 32), dtype=object)
+        color_array = np.empty((64, 64), dtype=object)
 
         # Apply the spectrogram_color function to each element
         for i in range(arr.shape[0]):
@@ -377,20 +377,18 @@ try:
             # print(normalized_array[-1])
             color_matrix = convert_to_color_array(normalized_array)
             if color_matrix is not None:
-                light_state = windows_layout.copy()
+                light_state = lights_layout.copy()
 
-                for y in range(32):
-                    for x in range(32):
+                for y in range(64):
+                    for x in range(64):
                         for key in light_linkage[x][y]:
                             ip, index = key.split(":")
                             index = int(index)
 
-                            if ip == "10.10.10.154":
-                                group_name = "Left Window"
-                            elif ip == "10.10.10.155":
-                                group_name = "Right Window"
+                            group_name = next(iter(lights_layout[ip]))
+                            
 
-                            pixel = text_frame[x][y]
+                            pixe = text_frame[x][y]
                             if pixel and args.render_scroll:
                                 light_state[ip][group_name][index]["color"] = {
                                     "r": 255,
@@ -402,7 +400,7 @@ try:
                                     y, x
                                 ]
                 replace_value_atomic(
-                    redis_client, "windows_layout", json.dumps(light_state)
+                    redis_client, "installation_layout", json.dumps(light_state)
                 )
 
         else:

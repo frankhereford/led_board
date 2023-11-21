@@ -39,20 +39,15 @@ class BleakEffect(Effect):
         ip = self.ctr.host
         color_data_json = redis_client.get('windows_layout').decode('utf-8')
         color_data = json.loads(color_data_json)
-        #print(color_data)
         if ip == '10.10.10.154':
             group_name = 'Left Window'
         elif ip == '10.10.10.155':
             group_name = 'Right Window'
 
-        #print(color_data[ip][group_name][index])
         if 'color' in color_data[ip][group_name][index]:
-
             return self.dict_to_rgb(color_data[ip][group_name][index]['color'])
-            print(color_data[ip][group_name][index]['color'])
         else:
             return (0, 0, 0)
-
 
     def getnext(self):
         return self.ctr.make_func_pattern(lambda index: self.get_light_color(index))
