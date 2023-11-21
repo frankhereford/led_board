@@ -22,7 +22,7 @@ for collection in bpy.context.scene.collection.children:
             coords = obj.location
             data[collection.name][sub_collection.name].append({
                 "index": number,  # add the integer value to the data structure
-                "coordinates": {"x": coords.x / 10, "y": coords.y / 10, "z": coords.z}
+                "coordinate": {"x": coords.x / 10, "y": coords.y / 10, "z": coords.z}
             })
 
 #print(data)
