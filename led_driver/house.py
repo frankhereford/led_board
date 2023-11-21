@@ -11,7 +11,7 @@ from xled_plus.highcontrol import HighControlInterface
 from xled.simple_udp import SimpleUDPClient
 
 cache = {}
-cache_expiry = 0.5  # seconds
+cache_expiry = 0.01  # seconds
 
 
 with open('../data/lights.json', 'r') as file:
@@ -22,9 +22,10 @@ redis_client = redis.Redis(host='localhost', port=6379, db=0)
 def get_color_data_with_cache():
     current_time = time.time()
     if 'color_data' not in cache or current_time - cache['color_data']['timestamp'] > cache_expiry:
-        color_data_json = redis_client.get('house_layout')
+        color_data_json = redis_client.get('installation_layout').decode('utf-8')
+
         if color_data_json:
-            color_data = json.loads(color_data_json.decode('utf-8'))
+            color_data = json.loads(color_data_json)
             cache['color_data'] = {
                 'data': color_data,
                 'timestamp': current_time
@@ -54,14 +55,26 @@ class BleakEffect(Effect):
         print(self.ctr.host)
         return (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
+    def dict_to_rgb(self, color_dict):
+        """
+        Converts a dictionary with keys 'r', 'g', and 'b' to an RGB tuple.
+
+        :param color_dict: Dictionary with the keys 'r', 'g', and 'b'.
+        :return: Tuple representing the RGB color.
+        """
+        return (color_dict['r'], color_dict['g'], color_dict['b'])
+
+
     def get_light_color_fast(self, index):
-        color_data_json = get_color_data_with_cache()
-        if not color_data_json:
+        color_data = get_color_data_with_cache()
+        if not color_data:
             return (0, 0, 0)
-        color_data = json.loads(color_data_json.decode('utf-8'))
         ip = self.ctr.host
-        if 'color' in color_data[ip][index]:
-            return self.dict_to_rgb(color_data[ip][index]['color'])
+        
+        group_name = next(iter(color_data[ip]))
+
+        if 'color' in color_data[ip][group_name][index]:
+            return self.dict_to_rgb(color_data[ip][group_name][index]['color'])
         else:
             return (0, 0, 0)
 
