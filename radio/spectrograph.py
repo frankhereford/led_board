@@ -15,19 +15,6 @@ from collections import deque
 
 from PIL import Image, ImageDraw, ImageFont
 
-np.set_printoptions(
-    linewidth=200,
-    formatter={"int": "{:4d}".format},
-)
-
-usage_line = " press <enter> to quit, +<enter> or -<enter> to change scaling "
-# python ./spectrograph.py -r 200 600 -b 25 -c 32 -g 500 -s -d 7
-
-with open("../data/installation.json", "r") as file:
-    lights_layout = json.load(file)
-
-redis_client = redis.Redis(host="localhost", port=6379, db=0)
-
 def render_scrolling_text_updated(
     text, width=32, height=32, scroll_speed=1, font_size=24, extra_frames=100
 ):
@@ -212,6 +199,20 @@ parser.add_argument(
     default="KUTX",
     help="Specify a message to display. Defaults to 'KUTX'.",
 )
+
+
+np.set_printoptions(
+    linewidth=200,
+    formatter={"int": "{:4d}".format},
+)
+
+usage_line = " press <enter> to quit, +<enter> or -<enter> to change scaling "
+# python ./spectrograph.py -r 200 600 -b 25 -c 32 -g 500 -s -d 7
+
+with open("../data/installation.json", "r") as file:
+    lights_layout = json.load(file)
+
+redis_client = redis.Redis(host="localhost", port=6379, db=0)
 
 
 
