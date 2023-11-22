@@ -1,5 +1,6 @@
 import argparse
 import shutil
+import sounddevice as sd
 import numpy as np
 
 def int_or_str(text):
