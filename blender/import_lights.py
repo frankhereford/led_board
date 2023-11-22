@@ -46,7 +46,7 @@ def create_icosphere(name, coordinates, size, subdivisions, collection):
     return obj
 
 def create_empty(name, coordinates, collection, scale_factor):
-    scaled_location = (coordinates["x"] * 10, coordinates["y"] * 10, coordinates["z"])
+    scaled_location = (coordinates["x"] * 1, coordinates["y"] * 1, coordinates["z"] * 1)
 
     bpy.ops.object.empty_add(type='PLAIN_AXES', location=scaled_location)
     obj = bpy.context.active_object
@@ -94,7 +94,7 @@ def assign_emission_material(obj, color=(1, 1, 1), strength=5.0):
         obj.data.materials.append(mat)
 
 
-def load_data(data, max_lights_per_group=5000, use_empties=False):
+def load_raw_data(data, max_lights_per_group=5000, use_empties=False):
     for ip in data:
         if ip not in bpy.data.collections:
             ip_collection = bpy.data.collections.new(ip)
@@ -127,4 +127,5 @@ def load_data(data, max_lights_per_group=5000, use_empties=False):
 
 
 empty_scene()
-load_data(lights, use_empties=True, max_lights_per_group=50000)
+load_raw_data(lights, use_empties=False, max_lights_per_group=1000)
+
