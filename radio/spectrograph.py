@@ -59,11 +59,7 @@ def render_scrolling_text_updated(
         for i in range(0, img_width + extra_frames, scroll_speed):
             # Extract the current frame from the image
             frame = img.crop((i, 0, i + width, height))
-            # Flip the frame vertically
-            #flipped_frame = np.flipud(np.array(frame))
-            #frames.append(flipped_frame)
             frames.append(np.array(frame))
-
 
         frame_data = np.array(frame)
         frames.append(frame_data)
@@ -107,6 +103,67 @@ def is_within_area(area_coords, point_coords):
     else:
         return False
 
+
+def spectrogram_color(value):
+    if value < 0 or value > 255:
+        raise ValueError("Value must be between 0 and 255")
+
+    if value == 0:
+        return {"r": 0, "g": 0, "b": 0}
+
+    # Define the transition points
+    blue_end = 255 // 6
+    green_end = blue_end + 100
+
+    # Initialize RGB values
+    r, g, b = 0, 0, 0
+
+    if value <= blue_end:
+        # Fade from black to blue
+        b = int(255 * (value / blue_end))
+    elif value <= green_end:
+        # Fade from blue to green
+        b = int(255 * (1 - (value - blue_end) / (green_end - blue_end)))
+        g = int(255 * ((value - blue_end) / (green_end - blue_end)))
+    else:
+        # Fade from green to red
+        g = int(255 * (1 - (value - green_end) / (255 - green_end)))
+        r = int(255 * ((value - green_end) / (255 - green_end)))
+
+    return {"r": r, "g": g, "b": b}
+
+def convert_to_color_array(arr):
+    if arr.shape != (32, 32):
+        return
+        # raise ValueError("Array must be 32x32 in size")
+
+    # Create an empty array to hold the RGB values
+    color_array = np.empty((32, 32), dtype=object)
+
+    # Apply the spectrogram_color function to each element
+    for i in range(arr.shape[0]):
+        for j in range(arr.shape[1]):
+            color_array[i, j] = spectrogram_color(arr[i, j])
+
+    return color_array
+
+def replace_value_atomic(redis_client, key, value):
+    """
+    Replaces the value of a key in Redis atomically using pipeline.
+
+    :param redis_client: The Redis client instance.
+    :param key: The key whose value is to be replaced.
+    :param value: The new value to set for the key.
+    """
+    pipeline = redis_client.pipeline()
+    pipeline.delete(key)
+    pipeline.set(key, value)
+    pipeline.execute()
+
+
+
+
+usage_line = " press <enter> to quit, +<enter> or -<enter> to change scaling "
 
 try:
     columns, _ = shutil.get_terminal_size()
@@ -206,7 +263,6 @@ np.set_printoptions(
     formatter={"int": "{:4d}".format},
 )
 
-usage_line = " press <enter> to quit, +<enter> or -<enter> to change scaling "
 # python ./spectrograph.py -r 200 600 -b 25 -c 32 -g 500 -s -d 7
 
 with open("../data/installation.json", "r") as file:
@@ -214,10 +270,7 @@ with open("../data/installation.json", "r") as file:
 
 redis_client = redis.Redis(host="localhost", port=6379, db=0)
 
-
-
 args = parser.parse_args(remaining)
-
 
 if args.render_scroll is not None:
     # Create an iterator that repeats each item 4 times
@@ -230,9 +283,6 @@ else:
     )
 repeated_data = itertools.chain.from_iterable(itertools.repeat(x, 3) for x in raw_frames)
 text_frames = itertools.cycle(repeated_data)
-
-
-
 
 low, high = args.range
 if high <= low:
@@ -280,61 +330,6 @@ try:
                         if is_within_area((x, y), light_coordinate):
                             light_linkage[y][x].append(key)
 
-    def spectrogram_color(value):
-        if value < 0 or value > 255:
-            raise ValueError("Value must be between 0 and 255")
-
-        if value == 0:
-            return {"r": 0, "g": 0, "b": 0}
-
-        # Define the transition points
-        blue_end = 255 // 6
-        green_end = blue_end + 100
-
-        # Initialize RGB values
-        r, g, b = 0, 0, 0
-
-        if value <= blue_end:
-            # Fade from black to blue
-            b = int(255 * (value / blue_end))
-        elif value <= green_end:
-            # Fade from blue to green
-            b = int(255 * (1 - (value - blue_end) / (green_end - blue_end)))
-            g = int(255 * ((value - blue_end) / (green_end - blue_end)))
-        else:
-            # Fade from green to red
-            g = int(255 * (1 - (value - green_end) / (255 - green_end)))
-            r = int(255 * ((value - green_end) / (255 - green_end)))
-
-        return {"r": r, "g": g, "b": b}
-
-    def convert_to_color_array(arr):
-        if arr.shape != (32, 32):
-            return
-            # raise ValueError("Array must be 32x32 in size")
-
-        # Create an empty array to hold the RGB values
-        color_array = np.empty((32, 32), dtype=object)
-
-        # Apply the spectrogram_color function to each element
-        for i in range(arr.shape[0]):
-            for j in range(arr.shape[1]):
-                color_array[i, j] = spectrogram_color(arr[i, j])
-
-        return color_array
-
-    def replace_value_atomic(redis_client, key, value):
-        """
-        Replaces the value of a key in Redis atomically using pipeline.
-
-        :param redis_client: The Redis client instance.
-        :param key: The key whose value is to be replaced.
-        :param value: The new value to set for the key.
-        """
-        pipeline = redis_client.pipeline()
-        pipeline.delete(key)
-        pipeline.set(key, value)
-        pipeline.execute()
 
     def callback(indata, frames, time, status):
         if status:
