@@ -45,7 +45,8 @@ def render_scrolling_text_updated(
 
     # Load a larger font
     try:
-        font = ImageFont.truetype("MonaspaceArgon-Bold.otf", font_size)
+        #font = ImageFont.truetype("MonaspaceArgon-Bold.otf", font_size)
+        font = ImageFont.truetype("DejaVuSerif-Bold.ttf", font_size)
     except IOError:
         print("Default font not found, using load_default() instead.")
         font = ImageFont.load_default()
@@ -304,6 +305,20 @@ try:
             g = int(255 * (1 - (value - green_end) / (255 - green_end)))
             r = int(255 * ((value - green_end) / (255 - green_end)))
 
+        #if r >= 255:
+            #r = 255
+        #if g >= 255:
+            #g = 255
+        #if b >= 255:
+            #b = 255
+
+        #if value >= 255:
+            #return {"r": 255, "g": 255, "b": 255}
+            #print(value)
+            #print(r)
+            #print("r: " + str(r) + " g: " + str(g) + " b: " + str(b))
+            #print()
+
         return {"r": r, "g": g, "b": b}
 
     def convert_to_color_array(arr):
@@ -388,7 +403,7 @@ try:
                             group_name = next(iter(lights_layout[ip]))
                             
 
-                            pixe = text_frame[x][y]
+                            pixel = text_frame[x][y]
                             if pixel and args.render_scroll:
                                 light_state[ip][group_name][index]["color"] = {
                                     "r": 255,
