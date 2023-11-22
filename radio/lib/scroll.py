@@ -1,8 +1,9 @@
+import itertools
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 def render_scrolling_text_updated(
-    text, width=32, height=32, scroll_speed=1, font_size=24, extra_frames=100
+    text, width=32, height=32, scroll_speed=3, font_size=24, extra_frames=100
 ):
     """
     Render scrolling text for a low-resolution display, updated for Pillow 9.5.0.
@@ -38,16 +39,19 @@ def render_scrolling_text_updated(
 
     # Scroll the text
     frames = []
-    for i in range(0, img_width - width + 1, scroll_speed):
+    for i in range(0, img_width - width + 1, 1): # that 1 was 'scroll speed', use to speed it up
         # Extract the current frame from the image
         frame = img.crop((i, 0, i + width, height))
 
-        for i in range(0, img_width + extra_frames, scroll_speed):
+        for i in range(0, img_width + extra_frames, 1): # that 1 was 'scroll speed', use to speed it up
             # Extract the current frame from the image
             frame = img.crop((i, 0, i + width, height))
             frames.append(np.array(frame))
 
         frame_data = np.array(frame)
         frames.append(frame_data)
+
+    repeated_data = itertools.chain.from_iterable(itertools.repeat(x, scroll_speed) for x in frames)
+    text_frames = itertools.cycle(repeated_data)
 
     return frames

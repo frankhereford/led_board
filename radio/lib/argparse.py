@@ -111,3 +111,6 @@ def parse_arguments():
         linewidth=200,
         formatter={"int": "{:4d}".format},
     )
+
+    args = parser.parse_args(remaining)
+    return args
