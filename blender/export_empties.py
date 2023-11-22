@@ -22,13 +22,13 @@ for collection in bpy.context.scene.collection.children:
             coords = obj.location
             data[collection.name][sub_collection.name].append({
                 "index": number,  # add the integer value to the data structure
-                "coordinate": {"x": coords.x / 10, "y": coords.y / 10, "z": coords.z}
+                "coordinate": {"x": coords.x, "y": coords.y, "z": coords.z}
             })
 
 #print(data)
 
 # Specifying the file path
-file_path = '/Users/frank/Development/led_board/data/installation.json'
+file_path = '/Users/frank/Development/led_board/data/installation_v2_groups.json'
 
 # Writing the data object as JSON to the specified file
 with open(file_path, 'w') as json_file:
