@@ -22,31 +22,35 @@ color_gen = color_generator()
 
 
 class FrameTracker:
-    def __init__(self, modulus=10, advance_rate=20):
+    def __init__(self, modulus=8, advance_rate=20, group_size=2):
         self.current_frame = 0
         self.modulus = modulus
         self.advance_rate = advance_rate
+        self.group_size = group_size
         self.internal_counter = 0
 
     def is_active(self, index):
-        # Returns True for every 'modulus' index, relative to the current frame
-        return (index - self.current_frame) % self.modulus == 0
+        # Adjusted to return True for a configurable number of lights in the group
+        for i in range(self.group_size):
+            if (index - self.current_frame - i) % self.modulus == 0:
+                return True
+        return False
 
     def advance_frame(self):
-        # Advances to the next frame based on the advance_rate
         self.internal_counter += 1
         if self.internal_counter >= self.advance_rate:
             self.current_frame += 1
-            self.internal_counter = 0  # Reset the counter
+            self.internal_counter = 0
 
     def set_modulus(self, new_modulus):
-        # Sets a new modulus value
         self.modulus = new_modulus
 
     def set_advance_rate(self, new_rate):
-        # Sets a new advance rate
         self.advance_rate = new_rate
 
+    def set_group_size(self, new_group_size):
+        # Sets a new group size
+        self.group_size = new_group_size
 
 frame_tracker = FrameTracker()
 
