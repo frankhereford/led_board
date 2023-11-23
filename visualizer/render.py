@@ -11,6 +11,10 @@ def parse_data(data):
     points = []
     data_dict = json.loads(data)  # Assuming data is a JSON string
 
+    #print(data_dict)
+    if not data_dict:
+        return points
+
     for _, nested_data in data_dict.items():
         for _, points_list in nested_data.items():
             for point in points_list:
@@ -53,13 +57,13 @@ while running:
 
         # Draw points
         for x, y, color in points:
-            pygame.draw.circle(screen, color, (int(x), int(y)), 5)  # 5 is the radius of the circle
+            pygame.draw.circle(screen, color, (int(x), int(y)), 4)  # 5 is the radius of the circle
 
     # Update the screen
     pygame.display.flip()
 
     # Control the update rate
-    #time.sleep(0.01)  # Adjust this value as needed
+    time.sleep(0.01)  # Adjust this value as needed
 
 # Quit Pygame
 pygame.quit()
