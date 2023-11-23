@@ -20,9 +20,12 @@ from PIL import Image, ImageDraw, ImageFont
     sample_buffer,
     light_linkage,
     layout,
-    redis_client,
     text_frames,
-) = (None, None, None, None, None, None, None, None, None, None, None, None)
+) = (None, None, None, None, None, None, None, None, None, None, None)
+
+spectrograph_frame = None
+
+get_spectrograph_frame = lambda: spectrograph_frame
 
 
 def inject_args(args_in):
@@ -104,11 +107,8 @@ def render_scrolling_text(
 
 
 def create_spectrograph_parameters(layout_in):
-    global low, high, gradient, samplerate, delta_f, fftsize, low_bin, sample_buffer, light_linkage, layout, redis_client
+    global low, high, gradient, samplerate, delta_f, fftsize, low_bin, sample_buffer, light_linkage, layout
     
-    redis_client = redis.Redis(host="localhost", port=6379, db=0)
-
-
     layout = layout_in
     low, high = args.range
     gradient = define_gradient()
@@ -246,20 +246,8 @@ def make_light_linkage(layout):
     return light_linkage
 
 
-def replace_value_atomic(redis_client, key, value):
-    """
-    Replaces the value of a key in Redis atomically using pipeline.
-
-    :param redis_client: The Redis client instance.
-    :param key: The key whose value is to be replaced.
-    :param value: The new value to set for the key.
-    """
-    pipeline = redis_client.pipeline()
-    pipeline.delete(key)
-    pipeline.set(key, value)
-    pipeline.execute()
-
 def callback(indata, frames, time, status):
+    global spectrograph_frame
     if status:
         text = " " + str(status) + " "
         print("\x1b[34;40m", text.center(args.columns, "#"), "\x1b[0m", sep="")
@@ -325,9 +313,8 @@ def callback(indata, frames, time, status):
                             }
                         else:
                             light_state[ip][group_name][index]["color"] = color_matrix[ y, x ]
-            replace_value_atomic(
-                redis_client, "installation_layout", json.dumps(light_state)
-            )
+            spectrograph_frame = light_state
+
 
     else:
         pass
