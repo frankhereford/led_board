@@ -90,27 +90,6 @@ class BleakEffect(Effect):
 
         group_name = light_to_index[ip][index]['group']
         group_index = light_to_index[ip][index]['index']
-        #print(ip)
-        #print(index)
-        #print(group_name)
-
-        if False:
-            print("light_to_index")
-            print(json.dumps(light_to_index, indent=4))
-            print()
-            print("color_data")
-            print(json.dumps(color_data, indent=4))
-
-        #group_name = self.get_group(color_data, ip, index)
-        #print(group_name)
-        #print(index)
-        # print(light_to_index[ip][index]['group'])
-        # group_name = next(iter(color_data[ip]))
-        # group_name = light_to_index[ip][index]['group']
-        # print(group_name)
-        # print(index)
-        # print(color_data[ip][group_name])
-        # print(color_data[ip][group_name][index])
 
         if "color" in color_data[ip][group_name][group_index]:
             return self.dict_to_rgb(color_data[ip][group_name][group_index]["color"])
