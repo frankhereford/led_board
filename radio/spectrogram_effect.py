@@ -20,6 +20,37 @@ samplerate = create_spectrograph_parameters(layout)
 brightness_tracker = BrightnessTracker()
 color_gen = color_generator()
 
+
+class FrameTracker:
+    def __init__(self, modulus=10, advance_rate=20):
+        self.current_frame = 0
+        self.modulus = modulus
+        self.advance_rate = advance_rate
+        self.internal_counter = 0
+
+    def is_active(self, index):
+        # Returns True for every 'modulus' index, relative to the current frame
+        return (index - self.current_frame) % self.modulus == 0
+
+    def advance_frame(self):
+        # Advances to the next frame based on the advance_rate
+        self.internal_counter += 1
+        if self.internal_counter >= self.advance_rate:
+            self.current_frame += 1
+            self.internal_counter = 0  # Reset the counter
+
+    def set_modulus(self, new_modulus):
+        # Sets a new modulus value
+        self.modulus = new_modulus
+
+    def set_advance_rate(self, new_rate):
+        # Sets a new advance rate
+        self.advance_rate = new_rate
+
+
+frame_tracker = FrameTracker()
+
+
 try:
     with sd.InputStream(
         device=args.device,
@@ -36,16 +67,23 @@ try:
             if not frame:
                 continue
 
-            #print("brightness", brightness)
+            frame_tracker.advance_frame()
+
+            #reduced_average_brightness = int(average_brightness / 255 * 10)
+            #frame_tracker.set_modulus(reduced_average_brightness + 1)
+
             color = adjust_brightness(next(color_gen), average_brightness)
             for ip in frame:
                 if ip in ['10.10.10.155', '10.10.10.154']:
                     continue
                 for group in frame[ip]:
                     for index, light in enumerate(frame[ip][group]):
-                        #frame[ip][group][index]['color'] = {'r': 255, 'g': 0, 'b': 255}
-                        #frame[ip][group][index]['color'] = get_random_color()
-                        frame[ip][group][index]['color'] = color
+                        if frame_tracker.is_active(index):
+                            #frame[ip][group][index]['color'] = {'r': 255, 'g': 0, 'b': 255}
+                            #frame[ip][group][index]['color'] = get_random_color()
+                            frame[ip][group][index]['color'] = color
+                        else:
+                            frame[ip][group][index]['color'] = {'r': 0, 'g': 0, 'b': 0}
 
             replace_value_atomic(
                 "installation_layout", json.dumps(frame)
