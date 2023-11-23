@@ -17,6 +17,21 @@ layout = read_json_from_file("installation_v2_groups.json")
 inject_args(args)
 create_text_frames(args)
 samplerate = create_spectrograph_parameters(layout)
+from collections import deque
+
+
+class BrightnessTracker:
+    def __init__(self):
+        self.brightness_values = deque(maxlen=4)
+
+    def add_brightness(self, brightness):
+        if brightness is not None:
+            self.brightness_values.append(brightness)
+
+    def get_average_brightness(self):
+        return sum(self.brightness_values) / len(self.brightness_values) if self.brightness_values else 0
+
+brightness_tracker = BrightnessTracker()
 
 
 def get_random_color():
@@ -36,6 +51,24 @@ def color_generator():
 
 color_gen = color_generator()
 
+def scale_brightness(value):
+    if value is None:
+        return 0
+    if value < 15:
+        return 0
+    elif value > 50:
+        return 255
+    else:
+        return int((value - 15) * (255 / (50 - 15)))
+
+def adjust_brightness(color, brightness):
+    return {
+        'r': int(color['r'] * brightness / 255),
+        'g': int(color['g'] * brightness / 255),
+        'b': int(color['b'] * brightness / 255)
+    }
+
+
 
 try:
     with sd.InputStream(
@@ -47,10 +80,14 @@ try:
     ):
         while True:
             frame = get_spectrograph_frame()
+            brightness = scale_brightness(get_brightness())
+            brightness_tracker.add_brightness(brightness)
+            average_brightness = brightness_tracker.get_average_brightness()
             if not frame:
                 continue
 
-            color = next(color_gen)
+            #print("brightness", brightness)
+            color = adjust_brightness(next(color_gen), average_brightness)
             for ip in frame:
                 if ip in ['10.10.10.155', '10.10.10.154']:
                     continue

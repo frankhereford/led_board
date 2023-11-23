@@ -21,11 +21,13 @@ from PIL import Image, ImageDraw, ImageFont
     light_linkage,
     layout,
     text_frames,
-) = (None, None, None, None, None, None, None, None, None, None, None)
+    brightness
+) = (None, None, None, None, None, None, None, None, None, None, None, None)
 
 spectrograph_frame = None
 
 get_spectrograph_frame = lambda: spectrograph_frame
+get_brightness = lambda: brightness
 
 
 def inject_args(args_in):
@@ -252,6 +254,19 @@ def callback(indata, frames, time, status):
         text = " " + str(status) + " "
         print("\x1b[34;40m", text.center(args.columns, "#"), "\x1b[0m", sep="")
     if any(indata):
+        
+
+        rms_amplitude = np.sqrt(np.mean(np.square(indata)))
+
+        # Normalize to a range (0 to max_brightness)
+        normalized_amplitude = np.clip(rms_amplitude, 0, 1)
+        led_brightness = int(normalized_amplitude * 255)
+
+        global brightness
+        brightness = led_brightness
+
+
+
         has_any_text = False
         if args.render_scroll:
             text_frame = next(text_frames)
