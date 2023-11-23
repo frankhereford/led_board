@@ -1,17 +1,10 @@
-#import math
-#import json
-#import redis
-#import shutil
-#import itertools
-#import numpy as np
+# rtl_fm -M wbfm -f 98.9M | play -r 32k -t raw -e s -b 16 -c 1 -V1 -
 
 import sounddevice as sd
 
-#from collections import deque
-
 from lib.argparse import parse_arguments
 from lib.layout import read_json_from_file
-from lib.scroll import render_scrolling_text_updated
+#from lib.scroll import render_scrolling_text_updated
 from lib.spectrograph import *
 
 args = parse_arguments()
@@ -20,7 +13,6 @@ layout = read_json_from_file("installation_v2_groups.json")
 inject_args(args)
 create_text_frames(args)
 samplerate = create_spectrograph_parameters(layout)
-
 
 try:
     with sd.InputStream(

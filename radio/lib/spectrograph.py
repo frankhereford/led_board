@@ -6,8 +6,9 @@ import time as libtime
 import redis
 import json
 import time
+import itertools
+from PIL import Image, ImageDraw, ImageFont
 
-text_frames = None
 (
     low,
     high,
@@ -20,7 +21,8 @@ text_frames = None
     light_linkage,
     layout,
     redis_client,
-) = (None, None, None, None, None, None, None, None, None, None, None)
+    text_frames,
+) = (None, None, None, None, None, None, None, None, None, None, None, None)
 
 
 def inject_args(args_in):
@@ -29,15 +31,76 @@ def inject_args(args_in):
 
 
 def create_text_frames(args):
+    global text_frames
     if args.render_scroll:
-        text_frames = render_scrolling_text_updated(
+        raw_frames= render_scrolling_text(
             args.message,
             width=32,
             height=32,
-            scroll_speed=1,
+            scroll_speed_up=1,
+            scroll_speed_down=2,
             font_size=30,
             extra_frames=args.render_scroll,
         )
+
+
+
+def render_scrolling_text(
+    text, width=32, height=32, scroll_speed_up=1, scroll_speed_down=3, font_size=24, extra_frames=100
+):
+    """
+    Render scrolling text for a low-resolution display, updated for Pillow 9.5.0.
+    The font size is increased to make the text take up more of the display.
+
+    :param text: The text to be displayed.
+    :param width: Width of the display in pixels.
+    :param height: Height of the display in pixels.
+    :param scroll_speed: Number of pixels to shift the text per frame.
+    :param font_size: Font size for the text.
+    :return: A list of frames, each frame being a 2D array representing the display.
+    """
+
+    # Load a larger font
+    try:
+        #font = ImageFont.truetype("MonaspaceArgon-Bold.otf", font_size)
+        font = ImageFont.truetype("DejaVuSerif-Bold.ttf", font_size)
+    except IOError:
+        print("Default font not found, using load_default() instead.")
+        font = ImageFont.load_default()
+
+    # Determine text size using getbbox and create an image wide enough to contain the scrolled text
+    bbox = font.getbbox(text)
+    text_width, text_height = bbox[2], bbox[3]
+    img_width = text_width + width
+    img = Image.new("1", (img_width, height), color=0)
+
+    # Create a drawing context
+    draw = ImageDraw.Draw(img)
+
+    # Draw the text onto the image
+    draw.text((width, ((height - text_height) // 2) - 5), text, font=font, fill=1) # change the subtracted number to scoot up text
+
+    # Scroll the text
+    frames = []
+    for i in range(0, img_width - width + 1, scroll_speed_up):
+        # Extract the current frame from the image
+        frame = img.crop((i, 0, i + width, height))
+
+        for i in range(0, img_width + extra_frames, scroll_speed_up):
+            # Extract the current frame from the image
+            frame = img.crop((i, 0, i + width, height))
+            frames.append(np.array(frame))
+
+        frame_data = np.array(frame)
+        frames.append(frame_data)
+
+    repeated_data = itertools.chain.from_iterable(itertools.repeat(x, scroll_speed_down) for x in frames)
+
+    global text_frames
+    text_frames = itertools.cycle(repeated_data)
+
+
+
 
 
 def create_spectrograph_parameters(layout_in):
@@ -78,31 +141,32 @@ def define_gradient():
     return gradient
 
 
-def is_within_area(area_coords, point_coords):
+def is_within_window(area_coords, point_coords, window):
     """
-    Function to check if the transformed point is within the defined area.
+    Check if the transformed point is within the defined window.
 
     Parameters:
-    area_coords (tuple): A tuple of two integers, each between 0 and 31.
-    point_coords (tuple): A tuple of two floats, X between -1 and 1, Y between 0 and 1.
+    area_coords (tuple): Coordinates on the LED grid (0-31, 0-31).
+    point_coords (tuple): Original point coordinates (-1 to 1, 0 to 1).
+    window (dict): Window boundaries {'x_min': -0.5, 'x_max': 0.5, 'y_min': 0.25, 'y_max': 0.75}.
 
     Returns:
-    bool: True if the transformed point is within the area, otherwise False.
+    bool: True if within the window, otherwise False.
     """
 
-    # Transform the point coordinates to 32x32 space
-    transformed_x = (point_coords[0] + 1) * 16  # Transforming X from [-1, 1] to [0, 32]
-    transformed_y = point_coords[1] * 32  # Transforming Y from [0, 1] to [0, 32]
+    # Scale and translate the point coordinates to fit within the window
+    x_range = window['x_max'] - window['x_min']
+    y_range = window['y_max'] - window['y_min']
 
-    # Check if the transformed point is within the area defined by area_coords
-    # The area is defined from (x, y) to (x+1, y+1)
-    if (
-        area_coords[0] <= transformed_x < area_coords[0] + 1
-        and area_coords[1] <= transformed_y < area_coords[1] + 1
-    ):
-        return True
-    else:
-        return False
+    transformed_x = ((point_coords[0] - window['x_min']) / x_range) * 32
+    transformed_y = ((point_coords[1] - window['y_min']) / y_range) * 32
+
+    # Check if the point is within the defined area on the LED grid
+    return (
+        area_coords[0] <= transformed_x < area_coords[0] + 1 and
+        area_coords[1] <= transformed_y < area_coords[1] + 1
+    )
+
 
 def convert_to_color_array(arr):
     #print()
@@ -153,6 +217,8 @@ def spectrogram_color(value):
 
 
 def make_light_linkage(layout):
+    window = {'x_min': .10, 'x_max': 0.60, 'y_min': 0.15, 'y_max': 0.5}
+
     light_linkage = []
 
     for y in range(32):
@@ -173,8 +239,10 @@ def make_light_linkage(layout):
                             light["coordinate"]["y"],
                         )
 
-                        if is_within_area((x, y), light_coordinate):
+                        if is_within_window((x, y), light_coordinate, window):
                             light_linkage[y][x].append(key)
+                        #if is_within_area((x, y), light_coordinate):
+                            #light_linkage[y][x].append(key)
     return light_linkage
 
 
@@ -203,7 +271,7 @@ def callback(indata, frames, time, status):
 
         gain = args.gain
         if has_any_text and args.render_scroll:
-            gain = 50
+            gain = 10 
 
         magnitude = np.abs(np.fft.rfft(indata[:, 0], n=fftsize))
         magnitude *= gain / fftsize
