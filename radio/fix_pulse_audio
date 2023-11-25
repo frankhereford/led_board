@@ -1,0 +1,5 @@
+pulseaudio -k
+pulseaudio --start
+pactl load-module module-null-sink sink_name=virtual-cable sink_properties=device.description=Virtual_Cable
+pactl list short sinks
+pactl load-module module-loopback source=virtual-cable.monitor sink=0
