@@ -58,7 +58,7 @@ def parse_arguments():
         "-g",
         "--gain",
         type=float,
-        default=500,
+        default=50,
         help="initial gain factor (default %(default)s)",
     )
     parser.add_argument(
@@ -67,7 +67,7 @@ def parse_arguments():
         type=float,
         nargs=2,
         metavar=("LOW", "HIGH"),
-        default=[200, 600],
+        default=[50, 1000],
         help="frequency range (default %(default)s Hz)",
     )
 
