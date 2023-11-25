@@ -2,6 +2,20 @@ import random
 import colorsys
 from collections import deque
 
+def dim_color(color, brightness):
+    # Ensure brightness is within the valid range
+    brightness = max(0, min(brightness, 255))
+    
+    # Calculate the dimmed color components
+    dimmed_color = {
+        'r': int(color['r'] * (brightness / 255)),
+        'g': int(color['g'] * (brightness / 255)),
+        'b': int(color['b'] * (brightness / 255))
+    }
+    
+    return dimmed_color
+
+
 class BrightnessTracker:
     def __init__(self):
         self.brightness_values = deque(maxlen=4)

@@ -248,7 +248,7 @@ def make_light_linkage(layout):
     return light_linkage
 
 
-def callback(indata, frames, time, status):
+def spectrograph_callback(indata, frames, time, status):
     global spectrograph_frame
     if status:
         text = " " + str(status) + " "
