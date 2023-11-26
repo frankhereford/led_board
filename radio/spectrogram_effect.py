@@ -1,9 +1,6 @@
 # rtl_fm -M wbfm -f 98.9M | play -r 32k -t raw -e s -b 16 -c 1 -V1 -
 
-import time
 import json
-import random
-import colorsys
 import sounddevice as sd
 from collections import deque
 from lib.spectrograph import *
