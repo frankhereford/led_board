@@ -9,38 +9,8 @@ import pygame
 import random
 import colorsys
 
-layout = layout_library.read_json_from_file("installation_v2_groups.json")
-
-# Initialization
-pygame.init()
-height = 50
-width = 1 * height  # Aspect ratio of 2:1
-screen = pygame.display.set_mode((width, height))
-clock = pygame.time.Clock()
-
-
-def cycle_hue():
-    hue = 0
-    while True:
-        rgb_color = colorsys.hls_to_rgb(hue / 360, 0.5, 1)  # HLS to RGB
-        pygame_color = tuple(int(255 * i) for i in rgb_color)  # Scale to 0-255
-        yield pygame_color
-        hue = (hue + 1) % 360  # Increment hue
-
-
-color_generator = cycle_hue()
-
 
 def transform_coordinate(point, target_x_max=100, target_y_max=100):
-    """
-    Transforms a point from the first coordinate space (-1 <= X <= 1, 0 < Y < 1)
-    to the second coordinate space (0 <= X <= target_x_max, 0 <= Y <= target_y_max).
-
-    :param point: Tuple (x, y) representing the point in the first coordinate space.
-    :param target_x_max: The maximum value of X in the target coordinate space.
-    :param target_y_max: The maximum value of Y in the target coordinate space.
-    :return: Tuple representing the transformed point in the second coordinate space.
-    """
     x, y = point
 
     # Transform X
@@ -76,6 +46,27 @@ def precompute_light_positions(layout, width, height):
     return light_positions
 
 
+layout = layout_library.read_json_from_file("installation_v2_groups.json")
+
+# Initialization
+pygame.init()
+height = 50
+width = 1 * height
+screen = pygame.display.set_mode((width, height))
+clock = pygame.time.Clock()
+
+
+def cycle_hue():
+    hue = 0
+    while True:
+        rgb_color = colorsys.hls_to_rgb(hue / 360, 0.5, 1)  # HLS to RGB
+        pygame_color = tuple(int(255 * i) for i in rgb_color)  # Scale to 0-255
+        yield pygame_color
+        hue = (hue + 1) % 360  # Increment hue
+
+
+color_generator = cycle_hue()
+
 light_positions = precompute_light_positions(layout, width, height)
 
 # Circle properties
@@ -98,15 +89,19 @@ while running:
     circle_x += velocity_x
     circle_y += velocity_y
 
-    variance = .5
+    variance = 0.5
 
     # Collision detection with slight angle change
     if circle_x - circle_radius <= 0 or circle_x + circle_radius >= width:
         velocity_x *= -1
-        velocity_y += random.uniform(-1 * variance, variance)  # Slight change in y velocity
+        velocity_y += random.uniform(
+            -1 * variance, variance
+        )  # Slight change in y velocity
     if circle_y - circle_radius <= 0 or circle_y + circle_radius >= height:
         velocity_y *= -1
-        velocity_x += random.uniform(-1 * variance, variance)  # Slight change in x velocity
+        velocity_x += random.uniform(
+            -1 * variance, variance
+        )  # Slight change in x velocity
 
     trail_surface.fill((0, 0, 0, fade_amount))  # Semi-transparent black surface
     screen.blit(trail_surface, (0, 0))
