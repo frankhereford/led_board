@@ -67,7 +67,7 @@ def parse_arguments():
         type=float,
         nargs=2,
         metavar=("LOW", "HIGH"),
-        default=[50, 1000],
+        default=[300, 1200],
         help="frequency range (default %(default)s Hz)",
     )
 
