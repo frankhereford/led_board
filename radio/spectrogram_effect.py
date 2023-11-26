@@ -9,7 +9,7 @@ from collections import deque
 from lib.spectrograph import *
 from lib.argparse import parse_arguments
 from lib.layout import read_json_from_file, replace_value_atomic
-from lib.utilities import BrightnessTracker, get_random_color, color_generator, scale_brightness, adjust_brightness, dim_color
+from lib.utilities import BrightnessTracker,  scale_brightness 
 #from lib.lights import Lights
 from lib.audio_buffer import CircularAudioBuffer
 from lib.lights import LightsRedux
@@ -23,7 +23,6 @@ inject_args(args)
 create_text_frames(args)
 samplerate = create_spectrograph_parameters(layout)
 brightness_tracker = BrightnessTracker()
-color_gen = color_generator()
 
 
 #lights = Lights(modulus=50)
@@ -56,14 +55,7 @@ try:
                 continue
 
             light_redux.advance_frame()
-            #random_group = random.choice(group_names)
-            #light_redux.set_color_by_group(random_group, get_random_color())
 
-            #lights.advance_frame()
-            #reduced_average_brightness = int(average_brightness / 255 * 10)
-            #frame_tracker.set_modulus(reduced_average_brightness + 1)
-
-            color = adjust_brightness(next(color_gen), average_brightness)
             for ip in frame:
                 if ip in ['10.10.10.155', '10.10.10.154']:
                     continue
