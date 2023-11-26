@@ -3,6 +3,7 @@ import shutil
 import sounddevice as sd
 import numpy as np
 
+
 def int_or_str(text):
     """Helper function for argument parsing."""
     try:
@@ -12,7 +13,6 @@ def int_or_str(text):
 
 
 def parse_arguments():
-
     usage_line = " press <enter> to quit, +<enter> or -<enter> to change scaling "
 
     try:
@@ -91,7 +91,7 @@ def parse_arguments():
         "-m",
         "--render-scroll",
         type=int,
-        nargs='?',
+        nargs="?",
         const=300,
         default=None,
         help="Enable this option to show scrolling text on the lights. Defaults to 300 if no value is provided.",
@@ -101,12 +101,11 @@ def parse_arguments():
         "-w",
         "--message",
         type=str,
-        nargs='?',
+        nargs="?",
         const="KUTX",
         default="KUTX",
         help="Specify a message to display. Defaults to 'KUTX'.",
     )
-
 
     np.set_printoptions(
         linewidth=200,

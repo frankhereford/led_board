@@ -4,6 +4,7 @@ from scipy.io.wavfile import write
 from datetime import datetime, timedelta
 import librosa
 
+
 class CircularAudioBuffer:
     def __init__(self, duration, sample_rate):
         self.duration = duration
@@ -15,18 +16,17 @@ class CircularAudioBuffer:
         self.last_tempo_time = None
         self.cache_duration = timedelta(seconds=5)
 
-
     def add_frames(self, indata):
         frames = len(indata)
         end_frame = self.current_frame + frames
         if end_frame < self.buffer_size:
             # If the end frame is within the buffer size
-            self.recording[self.current_frame:end_frame] = indata
+            self.recording[self.current_frame : end_frame] = indata
         else:
             # Wrap around the buffer
             remaining = self.buffer_size - self.current_frame
-            self.recording[self.current_frame:self.buffer_size] = indata[:remaining]
-            self.recording[0:end_frame - self.buffer_size] = indata[remaining:]
+            self.recording[self.current_frame : self.buffer_size] = indata[:remaining]
+            self.recording[0 : end_frame - self.buffer_size] = indata[remaining:]
 
         self.current_frame = end_frame % self.buffer_size
 
@@ -41,13 +41,15 @@ class CircularAudioBuffer:
 
     def estimate_tempo(self):
         # Check if we can use the cached tempo
-        if self.last_tempo_time and datetime.now() - self.last_tempo_time < self.cache_duration:
+        if (
+            self.last_tempo_time
+            and datetime.now() - self.last_tempo_time < self.cache_duration
+        ):
             return self.last_tempo
-
 
         # Convert the buffer to a mono signal by averaging the two channels
         mono_signal = np.mean(self.get_current_buffer(), axis=1)
-        
+
         # Use librosa to estimate the tempo
         tempo, _ = librosa.beat.beat_track(y=mono_signal, sr=self.sample_rate)
         tempo = int(tempo)

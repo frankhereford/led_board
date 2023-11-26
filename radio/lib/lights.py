@@ -2,6 +2,7 @@ import time
 import random
 import colorsys
 
+
 class LightsRedux:
     def __init__(self, initial_config, bpm=60):
         self.lights = {}
@@ -9,7 +10,11 @@ class LightsRedux:
             self.lights[ip] = {}
             for group_name, lights in groups.items():
                 self.lights[ip][group_name] = [
-                    {'index': light['index'], 'coordinate': light['coordinate'], 'color': {'r': 0, 'g': 0, 'b': 0}}
+                    {
+                        "index": light["index"],
+                        "coordinate": light["coordinate"],
+                        "color": {"r": 0, "g": 0, "b": 0},
+                    }
                     for light in lights
                 ]
         self.bpm = bpm
@@ -26,10 +31,14 @@ class LightsRedux:
     def color_generator(self, speed=1):
         frame = 0
         while True:
-            #print("speed", speed)
+            # print("speed", speed)
             hue = (frame * speed) % 360 / 360.0
             rgb = colorsys.hsv_to_rgb(hue, 1, 1)
-            rgb_dict = {'r': int(rgb[0] * 255), 'g': int(rgb[1] * 255), 'b': int(rgb[2] * 255)}
+            rgb_dict = {
+                "r": int(rgb[0] * 255),
+                "g": int(rgb[1] * 255),
+                "b": int(rgb[2] * 255),
+            }
             yield rgb_dict
             frame += 1
 
@@ -48,11 +57,17 @@ class LightsRedux:
         for ip in self.lights:
             for group in self.lights[ip].values():
                 for light in group:
-                    light['color'] = {color: max(0, int(value * (1 - percentage / 100))) for color, value in light['color'].items()}
-
+                    light["color"] = {
+                        color: max(0, int(value * (1 - percentage / 100)))
+                        for color, value in light["color"].items()
+                    }
 
     def get_random_color(self):
-        return {'r': random.randint(0, 255), 'g': random.randint(0, 255), 'b': random.randint(0, 255)}
+        return {
+            "r": random.randint(0, 255),
+            "g": random.randint(0, 255),
+            "b": random.randint(0, 255),
+        }
 
     def get_random_hsl_color(self, hue=None, saturation=None, lightness=None):
         # If hue, saturation, or lightness are not provided, assign them random values
@@ -80,7 +95,7 @@ class LightsRedux:
 
         red, green, blue = [int(255 * (value + match)) for value in (red, green, blue)]
 
-        return {'r': red, 'g': green, 'b': blue}
+        return {"r": red, "g": green, "b": blue}
 
     def _update_on_beat(self):
         print("Beat!")
@@ -95,17 +110,15 @@ class LightsRedux:
         """
         self.bpm = new_bpm
 
-
     def get_color(self, ip, group, index):
         """
         Returns the color of the light identified by ip, group, and index.
         """
         try:
             light = self.lights[ip][group][index]
-            return light['color']
+            return light["color"]
         except KeyError:
             return "Light not found"
-
 
     def get_group_names(self):
         """
@@ -115,11 +128,16 @@ class LightsRedux:
         for ip in self.lights:
             for group_name in self.lights[ip]:
                 print("group_name", group_name)
-                if group_name in ['Left Window', 'Right Window', 'Hidden Roof Lights', 'Around the Bend', 'Thin Window Bridges']:
+                if group_name in [
+                    "Left Window",
+                    "Right Window",
+                    "Hidden Roof Lights",
+                    "Around the Bend",
+                    "Thin Window Bridges",
+                ]:
                     continue
                 group_names.add(group_name)
         return list(group_names)
-
 
     def set_color_by_group(self, group_name, color):
         """
@@ -129,6 +147,4 @@ class LightsRedux:
             if group_name in self.lights[ip]:
                 for index, light in enumerate(self.lights[ip][group_name]):
                     if abs(index - self.beat_count) % 5 == 0:
-                        light['color'] = color
-
-
+                        light["color"] = color

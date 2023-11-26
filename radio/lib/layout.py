@@ -7,13 +7,14 @@ redis_client = redis.Redis(host="localhost", port=6379, db=0)
 
 def read_json_from_file(filename):
     file_path = os.path.join("../data/", filename)
-    with open(file_path, 'r') as file:
+    with open(file_path, "r") as file:
         data = json.load(file)
     return data
 
+
 def write_json_to_file(data, filename):
     file_path = os.path.join("../data/", filename)
-    with open(file_path, 'w') as file:
+    with open(file_path, "w") as file:
         json.dump(data, file, indent=4)
 
 
@@ -29,6 +30,3 @@ def replace_value_atomic(key, value):
     pipeline.delete(key)
     pipeline.set(key, value)
     pipeline.execute()
-
-
-

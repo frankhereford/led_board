@@ -21,7 +21,7 @@ from PIL import Image, ImageDraw, ImageFont
     light_linkage,
     layout,
     text_frames,
-    brightness
+    brightness,
 ) = (None, None, None, None, None, None, None, None, None, None, None, None)
 
 spectrograph_frame = None
@@ -38,7 +38,7 @@ def inject_args(args_in):
 def create_text_frames(args):
     global text_frames
     if args.render_scroll:
-        raw_frames= render_scrolling_text(
+        raw_frames = render_scrolling_text(
             args.message,
             width=32,
             height=32,
@@ -49,9 +49,14 @@ def create_text_frames(args):
         )
 
 
-
 def render_scrolling_text(
-    text, width=32, height=32, scroll_speed_up=1, scroll_speed_down=3, font_size=24, extra_frames=100
+    text,
+    width=32,
+    height=32,
+    scroll_speed_up=1,
+    scroll_speed_down=3,
+    font_size=24,
+    extra_frames=100,
 ):
     """
     Render scrolling text for a low-resolution display, updated for Pillow 9.5.0.
@@ -67,7 +72,7 @@ def render_scrolling_text(
 
     # Load a larger font
     try:
-        #font = ImageFont.truetype("MonaspaceArgon-Bold.otf", font_size)
+        # font = ImageFont.truetype("MonaspaceArgon-Bold.otf", font_size)
         font = ImageFont.truetype("DejaVuSerif-Bold.ttf", font_size)
     except IOError:
         print("Default font not found, using load_default() instead.")
@@ -83,7 +88,9 @@ def render_scrolling_text(
     draw = ImageDraw.Draw(img)
 
     # Draw the text onto the image
-    draw.text((width, ((height - text_height) // 2) - 5), text, font=font, fill=1) # change the subtracted number to scoot up text
+    draw.text(
+        (width, ((height - text_height) // 2) - 5), text, font=font, fill=1
+    )  # change the subtracted number to scoot up text
 
     # Scroll the text
     frames = []
@@ -99,18 +106,17 @@ def render_scrolling_text(
         frame_data = np.array(frame)
         frames.append(frame_data)
 
-    repeated_data = itertools.chain.from_iterable(itertools.repeat(x, scroll_speed_down) for x in frames)
+    repeated_data = itertools.chain.from_iterable(
+        itertools.repeat(x, scroll_speed_down) for x in frames
+    )
 
     global text_frames
     text_frames = itertools.cycle(repeated_data)
 
 
-
-
-
 def create_spectrograph_parameters(layout_in):
     global low, high, gradient, samplerate, delta_f, fftsize, low_bin, sample_buffer, light_linkage, layout
-    
+
     layout = layout_in
     low, high = args.range
     gradient = define_gradient()
@@ -157,22 +163,22 @@ def is_within_window(area_coords, point_coords, window):
     """
 
     # Scale and translate the point coordinates to fit within the window
-    x_range = window['x_max'] - window['x_min']
-    y_range = window['y_max'] - window['y_min']
+    x_range = window["x_max"] - window["x_min"]
+    y_range = window["y_max"] - window["y_min"]
 
-    transformed_x = ((point_coords[0] - window['x_min']) / x_range) * 32
-    transformed_y = ((point_coords[1] - window['y_min']) / y_range) * 32
+    transformed_x = ((point_coords[0] - window["x_min"]) / x_range) * 32
+    transformed_y = ((point_coords[1] - window["y_min"]) / y_range) * 32
 
     # Check if the point is within the defined area on the LED grid
     return (
-        area_coords[0] <= transformed_x < area_coords[0] + 1 and
-        area_coords[1] <= transformed_y < area_coords[1] + 1
+        area_coords[0] <= transformed_x < area_coords[0] + 1
+        and area_coords[1] <= transformed_y < area_coords[1] + 1
     )
 
 
 def convert_to_color_array(arr):
-    #print()
-    #print("input", arr)
+    # print()
+    # print("input", arr)
     if arr.shape != (32, 32):
         return
         # raise ValueError("Array must be 32x32 in size")
@@ -183,11 +189,12 @@ def convert_to_color_array(arr):
     # Apply the spectrogram_color function to each element
     for i in range(arr.shape[0]):
         for j in range(arr.shape[1]):
-            #print("arr[i, j]", arr[i, j])
+            # print("arr[i, j]", arr[i, j])
             color_array[i, j] = spectrogram_color(arr[i, j])
 
-    #print("color_array", color_array)
+    # print("color_array", color_array)
     return color_array
+
 
 def spectrogram_color(value):
     if value < 0 or value > 255:
@@ -219,7 +226,7 @@ def spectrogram_color(value):
 
 
 def make_light_linkage(layout):
-    window = {'x_min': .10, 'x_max': 0.60, 'y_min': 0.15, 'y_max': 0.5}
+    window = {"x_min": 0.10, "x_max": 0.60, "y_min": 0.15, "y_max": 0.5}
 
     light_linkage = []
 
@@ -229,7 +236,7 @@ def make_light_linkage(layout):
             light_linkage[y].append([])
 
             for ip in layout:
-                if ip not in ('10.10.10.154', '10.10.10.155'):
+                if ip not in ("10.10.10.154", "10.10.10.155"):
                     continue
                 for group in layout[ip]:
                     for light in layout[ip][group]:
@@ -243,8 +250,8 @@ def make_light_linkage(layout):
 
                         if is_within_window((x, y), light_coordinate, window):
                             light_linkage[y][x].append(key)
-                        #if is_within_area((x, y), light_coordinate):
-                            #light_linkage[y][x].append(key)
+                        # if is_within_area((x, y), light_coordinate):
+                        # light_linkage[y][x].append(key)
     return light_linkage
 
 
@@ -254,8 +261,6 @@ def spectrograph_callback(indata, frames, time, status):
         text = " " + str(status) + " "
         print("\x1b[34;40m", text.center(args.columns, "#"), "\x1b[0m", sep="")
     if any(indata):
-        
-
         rms_amplitude = np.sqrt(np.mean(np.square(indata)))
 
         # Normalize to a range (0 to max_brightness)
@@ -265,8 +270,6 @@ def spectrograph_callback(indata, frames, time, status):
         global brightness
         brightness = led_brightness
 
-
-
         has_any_text = False
         if args.render_scroll:
             text_frame = next(text_frames)
@@ -274,7 +277,7 @@ def spectrograph_callback(indata, frames, time, status):
 
         gain = args.gain
         if has_any_text and args.render_scroll:
-            gain = 10 
+            gain = 10
 
         magnitude = np.abs(np.fft.rfft(indata[:, 0], n=fftsize))
         magnitude *= gain / fftsize
@@ -327,9 +330,10 @@ def spectrograph_callback(indata, frames, time, status):
                                 "b": 255,
                             }
                         else:
-                            light_state[ip][group_name][index]["color"] = color_matrix[ y, x ]
+                            light_state[ip][group_name][index]["color"] = color_matrix[
+                                y, x
+                            ]
             spectrograph_frame = light_state
-
 
     else:
         pass

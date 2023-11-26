@@ -2,17 +2,18 @@ import random
 import colorsys
 from collections import deque
 
+
 def dim_color(color, brightness):
     # Ensure brightness is within the valid range
     brightness = max(0, min(brightness, 255))
-    
+
     # Calculate the dimmed color components
     dimmed_color = {
-        'r': int(color['r'] * (brightness / 255)),
-        'g': int(color['g'] * (brightness / 255)),
-        'b': int(color['b'] * (brightness / 255))
+        "r": int(color["r"] * (brightness / 255)),
+        "g": int(color["g"] * (brightness / 255)),
+        "b": int(color["b"] * (brightness / 255)),
     }
-    
+
     return dimmed_color
 
 
@@ -25,11 +26,19 @@ class BrightnessTracker:
             self.brightness_values.append(brightness)
 
     def get_average_brightness(self):
-        return sum(self.brightness_values) / len(self.brightness_values) if self.brightness_values else 0
+        return (
+            sum(self.brightness_values) / len(self.brightness_values)
+            if self.brightness_values
+            else 0
+        )
 
 
 def get_random_color():
-    return {'r': random.randint(0, 255), 'g': random.randint(0, 255), 'b': random.randint(0, 255)}
+    return {
+        "r": random.randint(0, 255),
+        "g": random.randint(0, 255),
+        "b": random.randint(0, 255),
+    }
 
 
 def color_generator():
@@ -40,7 +49,11 @@ def color_generator():
         # Convert HSV to RGB (Saturation and Value are set to 1 for full color)
         rgb = colorsys.hsv_to_rgb(hue, 1, 1)
         # Convert to 8-bit RGB format and return as a dictionary
-        rgb_dict = {'r': int(rgb[0] * 255), 'g': int(rgb[1] * 255), 'b': int(rgb[2] * 255)}
+        rgb_dict = {
+            "r": int(rgb[0] * 255),
+            "g": int(rgb[1] * 255),
+            "b": int(rgb[2] * 255),
+        }
         yield rgb_dict
         frame += 1
 
@@ -58,7 +71,7 @@ def scale_brightness(value):
 
 def adjust_brightness(color, brightness):
     return {
-        'r': int(color['r'] * brightness / 255),
-        'g': int(color['g'] * brightness / 255),
-        'b': int(color['b'] * brightness / 255)
+        "r": int(color["r"] * brightness / 255),
+        "g": int(color["g"] * brightness / 255),
+        "b": int(color["b"] * brightness / 255),
     }
