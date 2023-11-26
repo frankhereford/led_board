@@ -92,7 +92,7 @@ def parse_arguments():
         "--render-scroll",
         type=int,
         nargs="?",
-        const=300,
+        const=600,
         default=None,
         help="Enable this option to show scrolling text on the lights. Defaults to 300 if no value is provided.",
     )
