@@ -17,12 +17,17 @@ class LightsRedux:
         self.group_names = self.get_group_names()
         self.color_gen = self.color_generator()
         self.beat_count = 0  # Initialize beat counter
+        # Assign individual color generators to each group
+        self.group_generators = {}
+        for group_name in self.group_names:
+            speed = random.uniform(0.8, 5)  # Adjust this range as needed
+            self.group_generators[group_name] = self.color_generator(speed)
 
-
-    def color_generator(self):
+    def color_generator(self, speed=1):
         frame = 0
         while True:
-            hue = frame % 360 / 360.0
+            #print("speed", speed)
+            hue = (frame * speed) % 360 / 360.0
             rgb = colorsys.hsv_to_rgb(hue, 1, 1)
             rgb_dict = {'r': int(rgb[0] * 255), 'g': int(rgb[1] * 255), 'b': int(rgb[2] * 255)}
             yield rgb_dict
@@ -30,7 +35,7 @@ class LightsRedux:
 
     def advance_frame(self):
         current_time = time.time()
-        self._darken_lights_by_percentage(2)
+        self._darken_lights_by_percentage(3)
 
         if self.bpm == 0:
             return
@@ -81,8 +86,8 @@ class LightsRedux:
         print("Beat!")
         self.beat_count += 1
         for group_name in self.group_names:
-            #self.set_color_by_group(group_name, next(self.color_gen))
-            self.set_color_by_group(group_name, self.get_random_hsl_color(saturation=1, lightness=0.5))
+            color = next(self.group_generators[group_name])
+            self.set_color_by_group(group_name, color)
 
     def set_bpm(self, new_bpm):
         """
