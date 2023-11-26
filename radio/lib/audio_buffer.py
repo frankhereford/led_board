@@ -14,7 +14,7 @@ class CircularAudioBuffer:
         self.current_frame = 0
         self.last_tempo = None
         self.last_tempo_time = None
-        self.cache_duration = timedelta(seconds=5)
+        self.cache_duration = timedelta(seconds=2)
 
     def add_frames(self, indata):
         frames = len(indata)
