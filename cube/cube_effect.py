@@ -12,13 +12,13 @@ layout = layout_library.read_json_from_file("installation_v2_groups.json")
 
 # Initialization
 pygame.init()
-height = 100
+height = 50 
 width = 1 * height  # Aspect ratio of 2:1
 screen = pygame.display.set_mode((width, height))
 clock = pygame.time.Clock()
 
 # Scale factor
-scale_factor = 30  # Adjust this value to scale the cube size
+scale_factor = 15 # Adjust this value to scale the cube size
 
 # Cube points
 cube_points = [
@@ -53,7 +53,7 @@ edges = [
 
 
 # Function to draw the cube with adjustable line thickness
-def draw_cube(points, screen, width, height, line_thickness=5):
+def draw_cube(points, screen, width, height, line_thickness=2):
     for edge in edges:
         points1 = points[edge[0]]
         points2 = points[edge[1]]
@@ -127,8 +127,8 @@ def precompute_light_positions(layout, width, height):
 
     return light_positions
 
-light_lookup = precompute_light_positions(layout, width, height)
-print(light_lookup)
+
+light_positions = precompute_light_positions(layout, width, height)
 
 
 # Main loop
@@ -146,23 +146,14 @@ while running:
     ]
     draw_cube(rotated_points, screen, width, height)
 
-    for ip in layout:
-        for group in layout[ip]:
-            for index, light in enumerate(layout[ip][group]):
-                transformed_point = transform_coordinate(
-                    (
-                        light["coordinate"]["x"],
-                        light["coordinate"]["y"],
-                    ),
-                    width - 1,
-                    height - 1,
-                )
-                color_sample = screen.get_at(transformed_point)
-                layout[ip][group][index]["color"] = {
-                    "r": color_sample[0],
-                    "g": color_sample[1],
-                    "b": color_sample[2],
-                }
+    for (x, y), lights in light_positions.items():
+        color_sample = screen.get_at((x, y))
+        for ip, group, index in lights:
+            layout[ip][group][index]["color"] = {
+                "r": color_sample[0],
+                "g": color_sample[1],
+                "b": color_sample[2],
+            }
 
     layout_library.replace_value_atomic("installation_layout", json.dumps(layout))
 
