@@ -98,7 +98,7 @@ class LightsRedux:
         return {"r": red, "g": green, "b": blue}
 
     def _update_on_beat(self):
-        print("Beat!")
+        #print("Beat!")
         self.beat_count += 1
         for group_name in self.group_names:
             color = next(self.group_generators[group_name])

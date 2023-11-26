@@ -58,6 +58,6 @@ class CircularAudioBuffer:
         self.last_tempo = tempo
         self.last_tempo_time = datetime.now()
 
-        print("Estimating tempo...", tempo)
+        #print("Estimating tempo...", tempo)
 
         return tempo
