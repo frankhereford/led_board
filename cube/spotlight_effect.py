@@ -1,10 +1,8 @@
 import sys
 
 sys.path.insert(1, "../radio/lib")
-
 import layout as layout_library
 import json
-
 import pygame
 import random
 import colorsys
@@ -67,6 +65,25 @@ def cycle_hue():
 
 color_generator = cycle_hue()
 
+
+def bound_value(value, low_limit, high_limit):
+    """
+    Bounds the given value within the specified limits.
+
+    :param value: The float value to be bounded.
+    :param low_limit: The lower limit.
+    :param high_limit: The higher limit.
+    :return: The bounded value.
+    """
+    if value < low_limit:
+        return low_limit
+    elif value > high_limit:
+        return high_limit
+    return value
+
+
+# Example usage
+
 light_positions = precompute_light_positions(layout, width, height)
 
 # Circle properties
@@ -75,7 +92,7 @@ circle_x, circle_y = width // 2, height // 2
 velocity_x, velocity_y = 1, 1  # Adjust these for speed
 
 trail_surface = pygame.Surface((width, height), pygame.SRCALPHA)
-fade_amount = 10  # Adjust this for the fade speed
+fade_amount = 3  # Adjust this for the fade speed
 
 # Main loop
 running = True
@@ -102,6 +119,9 @@ while running:
         velocity_x += random.uniform(
             -1 * variance, variance
         )  # Slight change in x velocity
+
+    velocity_x = bound_value(velocity_x, -1.1, 1.1)
+    velocity_y = bound_value(velocity_y, -1.1, 1.1)
 
     trail_surface.fill((0, 0, 0, fade_amount))  # Semi-transparent black surface
     screen.blit(trail_surface, (0, 0))
