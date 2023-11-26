@@ -22,7 +22,8 @@ from PIL import Image, ImageDraw, ImageFont
     layout,
     text_frames,
     brightness,
-) = (None, None, None, None, None, None, None, None, None, None, None, None)
+    bpm,
+) = (None, None, None, None, None, None, None, None, None, None, None, None, None)
 
 spectrograph_frame = None
 
@@ -34,6 +35,9 @@ def inject_args(args_in):
     global args
     args = args_in
 
+def set_bpm(bpm_in):
+    global bpm
+    bpm = bpm_in
 
 def create_text_frames(args):
     global text_frames
@@ -286,7 +290,9 @@ def spectrograph_callback(indata, frames, time, status):
                 gradient[int(np.clip(x, 0, 1) * (len(gradient) - 1))]
                 for x in magnitude[low_bin : low_bin + args.columns]
             )
-            print(*line, sep="", end="\x1b[0m\n")
+            print(*line, sep="", end=" \x1b[0m")
+            print(bpm)
+
 
         if args.show_scroll and args.render_scroll:
             for y, row in enumerate(text_frame):
