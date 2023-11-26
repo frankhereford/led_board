@@ -10,26 +10,29 @@ from lib.spectrograph import *
 from lib.argparse import parse_arguments
 from lib.layout import read_json_from_file, replace_value_atomic
 from lib.utilities import BrightnessTracker, get_random_color, color_generator, scale_brightness, adjust_brightness, dim_color
-from lib.lights import Lights
+#from lib.lights import Lights
 from lib.audio_buffer import CircularAudioBuffer
+from lib.lights import LightsRedux
 
 
 args = parse_arguments()
 layout = read_json_from_file("installation_v2_groups.json")
+light_redux = LightsRedux(layout)
+group_names = light_redux.get_group_names()
 inject_args(args)
 create_text_frames(args)
 samplerate = create_spectrograph_parameters(layout)
 brightness_tracker = BrightnessTracker()
 color_gen = color_generator()
 
-lights = Lights(modulus=50)
+
+#lights = Lights(modulus=50)
 
 def callback(indata, frames, time, status):
     spectrograph_callback(indata, frames, time, status)
     buffer.add_frames(indata)
 
 duration = 15  # seconds
-
 buffer = CircularAudioBuffer(duration, int(samplerate))
 
 
@@ -43,7 +46,8 @@ try:
     ):
         while True:
             tempo = buffer.estimate_tempo()
-            lights.set_tempo(tempo)
+            light_redux.set_bpm(tempo)
+            #lights.set_tempo(tempo)
             frame = get_spectrograph_frame()
             brightness = scale_brightness(get_brightness())
             brightness_tracker.add_brightness(brightness)
@@ -51,7 +55,11 @@ try:
             if not frame:
                 continue
 
-            lights.advance_frame()
+            light_redux.advance_frame()
+            #random_group = random.choice(group_names)
+            #light_redux.set_color_by_group(random_group, get_random_color())
+
+            #lights.advance_frame()
             #reduced_average_brightness = int(average_brightness / 255 * 10)
             #frame_tracker.set_modulus(reduced_average_brightness + 1)
 
@@ -61,7 +69,9 @@ try:
                     continue
                 for group in frame[ip]:
                     for index, light in enumerate(frame[ip][group]):
-                        frame[ip][group][index]['color'] = lights.get_light_color(index, group)
+                        frame[ip][group][index]['color'] = light_redux.get_color(ip, group, index)
+                        #frame[ip][group][index]['color'] = lights.get_light_color(index, group)
+
             replace_value_atomic(
                 "installation_layout", json.dumps(frame)
             )
