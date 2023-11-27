@@ -82,8 +82,6 @@ def bound_value(value, low_limit, high_limit):
     return value
 
 
-# Example usage
-
 light_positions = precompute_light_positions(layout, width, height)
 
 # Circle properties
