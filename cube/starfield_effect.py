@@ -10,13 +10,17 @@ import json
 pygame.init()
 
 # Screen dimensions
-width, height = 50, 50
+width, height = 100, 100
 screen = pygame.display.set_mode((width, height))
 clock = pygame.time.Clock()
 
 # Star properties
-num_stars = 100
-star_speed = 2
+num_stars = 300
+star_speed = 1.4 
+#camera_y_offset = 80  # pan
+#camera_translation_y = -50  # translate
+camera_y_offset = 0  # pan
+camera_translation_y = -30  # translate
 
 
 def transform_coordinate(point, target_x_max=100, target_y_max=100):
@@ -65,13 +69,17 @@ class Star:
         self.z -= star_speed
         if self.z <= 0:
             self.x = random.randint(-width, width)
-            self.y = random.randint(-height, height)
+            self.y = (
+                random.randint(-height, height) - camera_y_offset
+            )  # Subtracting the offset here
             self.z = width
 
     def show(self, screen):
         x, y = self.x / self.z, self.y / self.z
         x = int(x * width / 2 + width / 2)
-        y = int(y * height / 2 + height / 2)
+        y = (
+            int(y * height / 2 + height / 2) - camera_translation_y
+        )  # Applying translation here
 
         if 0 <= x < width and 0 <= y < height:
             pygame.draw.circle(screen, (255, 255, 255), (x, y), max(1, int(5 / self.z)))
@@ -99,17 +107,19 @@ while running:
         star.show(screen)
 
     for (x, y), lights in light_positions.items():
-        color_sample = screen.get_at((x, y))
+        # Invert the y-coordinate to correct the upside-down issue
+        inverted_y = height - y - 1  # Subtracting 1 because coordinates are 0-indexed
+
+        color_sample = screen.get_at((x, inverted_y))
         for ip, group, index in lights:
             layout[ip][group][index]["color"] = {
                 "r": color_sample[0],
                 "g": color_sample[1],
                 "b": color_sample[2],
             }
-
     layout_library.replace_value_atomic("installation_layout", json.dumps(layout))
 
     pygame.display.flip()
-    clock.tick(60)
+    clock.tick(120)
 
 pygame.quit()
