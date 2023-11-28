@@ -53,7 +53,7 @@ while running:
         points = parse_data(data)
 
         # Clear screen
-        screen.fill((0, 0, 0))
+        screen.fill((30, 30, 30))
 
         # Draw points
         for x, y, color in points:
