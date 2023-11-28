@@ -140,6 +140,6 @@ while running:
     layout_library.replace_value_atomic("installation_layout", json.dumps(layout))
 
     pygame.display.flip()
-    clock.tick(120)
+    clock.tick(30)
 
 pygame.quit()

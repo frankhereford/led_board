@@ -87,7 +87,7 @@ light_positions = precompute_light_positions(layout, width, height)
 # Circle properties
 circle_radius = 5
 circle_x, circle_y = width // 2, height // 2
-velocity_x, velocity_y = 1, 1  # Adjust these for speed
+velocity_x, velocity_y = .5, .5  # Adjust these for speed
 
 trail_surface = pygame.Surface((width, height), pygame.SRCALPHA)
 fade_amount = 3  # Adjust this for the fade speed
@@ -104,7 +104,7 @@ while running:
     circle_x += velocity_x
     circle_y += velocity_y
 
-    variance = 0.5
+    variance = 0.1
 
     # Collision detection with slight angle change
     if circle_x - circle_radius <= 0 or circle_x + circle_radius >= width:
@@ -118,8 +118,8 @@ while running:
             -1 * variance, variance
         )  # Slight change in x velocity
 
-    velocity_x = bound_value(velocity_x, -1.1, 1.1)
-    velocity_y = bound_value(velocity_y, -1.1, 1.1)
+    velocity_x = bound_value(velocity_x, -.6, .6)
+    velocity_y = bound_value(velocity_y, -.6, .6)
 
     trail_surface.fill((0, 0, 0, fade_amount))  # Semi-transparent black surface
     screen.blit(trail_surface, (0, 0))
@@ -141,6 +141,6 @@ while running:
     layout_library.replace_value_atomic("installation_layout", json.dumps(layout))
 
     pygame.display.flip()
-    # clock.tick(60)
+    clock.tick(30)
 
 pygame.quit()
