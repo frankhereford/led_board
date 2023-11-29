@@ -2,18 +2,13 @@ import openai
 import redis
 import os
 import json
+from dotenv import load_dotenv
 
-# Function to load environment variables from a file
-def load_env():
-    with open('env', 'r') as file:
-        for line in file:
-            key, value = line.strip().split('=')
-            if key == 'OPENAI_KEY':
-                os.environ['OPENAI_API_KEY'] = value
+# Load .env file
+load_dotenv()
 
+api_key = os.getenv("API_KEY")
 
-
-load_env()
 
 # Initialize Redis connection
 redis_client = redis.Redis(host='localhost', port=6379, db=0)
@@ -34,12 +29,19 @@ def create_question(data):
 
 # Function to ask a question using OpenAI API
 def ask_openai(question):
-    response = openai.Completion.create(
-        engine="davinci",
-        prompt=question,
-        max_tokens=50
+    MODEL = "gpt-3.5-turbo"
+    response = openai.ChatCompletion.create(
+        model=MODEL,
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "Knock knock."},
+            {"role": "assistant", "content": "Who's there?"},
+            {"role": "user", "content": "Orange."},
+        ],
+        temperature=0,
     )
-    return response.choices[0].text.strip()
+
+    return response
 
 def main():
     list_name = "transcription"
@@ -47,6 +49,8 @@ def main():
     if data:
         # Decode each byte string in the list to a regular string
         decoded_data = [item.decode('utf-8') for item in data]
+        response = ask_openai("What is 4 * 4?")
+        print("Response from OpenAI:", response)
         print(decoded_data)
     else:
         print("No data found in Redis.")
