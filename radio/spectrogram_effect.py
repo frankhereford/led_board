@@ -33,28 +33,31 @@ import redis
 
 
 
-# Set the logging level to WARNING to suppress INFO messages
-logging.getLogger('spleeter').setLevel(logging.WARNING)
+if False:
+    # Set the logging level to WARNING to suppress INFO messages
+    logging.getLogger('spleeter').setLevel(logging.WARNING)
 
-# Suppress specific warnings
-warnings.filterwarnings("ignore", message="FP16 is not supported on CPU; using FP32 instead")
+    # Suppress specific warnings
+    warnings.filterwarnings("ignore", message="FP16 is not supported on CPU; using FP32 instead")
 
-# Suppress TensorFlow warnings
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # This will hide the TensorFlow C++ level warnings
-tf.get_logger().setLevel('ERROR')         # This will suppress TensorFlow Python warnings
+    # Suppress TensorFlow warnings
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # This will hide the TensorFlow C++ level warnings
+    tf.get_logger().setLevel('ERROR')         # This will suppress TensorFlow Python warnings
 
-@contextlib.contextmanager
-def suppress_stderr():
-    """
-    Context manager to suppress standard error.
-    """
-    old_stderr = sys.stderr
-    sys.stderr = open('/dev/null', 'w')
-    try:
-        yield
-    finally:
-        sys.stderr.close()
-        sys.stderr = old_stderr
+    @contextlib.contextmanager
+    def suppress_stderr():
+        """
+        Context manager to suppress standard error.
+        """
+        old_stderr = sys.stderr
+        sys.stderr = open('/dev/null', 'w')
+        try:
+            yield
+        finally:
+            sys.stderr.close()
+            sys.stderr = old_stderr
+
+
 
 args = parse_arguments()
 layout = read_json_from_file("installation_v2_groups.json")
@@ -101,7 +104,8 @@ if args.sample:
 
     clean_directories(directories_to_clean)
 
-with suppress_stderr():
+#with suppress_stderr():
+if True:
     try:
         last_save_time = time.time()
 
@@ -139,7 +143,6 @@ with suppress_stderr():
                                 voice_buffer.save(voice_buffer.get_current_buffer(), temp_file.name)
 
                                 # Transcribe the audio (optional, if you need transcription)
-                                transcription = transcribe_audio(whisper_model, temp_file.name)
 
                                 # Split the audio into vocal and accompaniment
                                 vocal_path, accompaniment_path = split_audio(temp_file.name, '/tmp')
@@ -147,6 +150,8 @@ with suppress_stderr():
                                 # Save the vocal track to the specified directory with a timestamp
                                 vocal_filename = create_timestamped_filename("/home/frank/development/lightboard/voice/samples/in_flight_voice", prefix='vocal')
                                 os.rename(vocal_path, vocal_filename)
+
+                                transcription = transcribe_audio(whisper_model, vocal_filename)
 
                                 # Remove the original temp file and accompaniment file
                                 os.remove(temp_file.name)
