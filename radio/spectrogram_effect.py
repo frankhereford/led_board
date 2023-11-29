@@ -29,6 +29,10 @@ import tensorflow as tf
 import sys
 import contextlib
 
+import redis
+
+
+
 # Set the logging level to WARNING to suppress INFO messages
 logging.getLogger('spleeter').setLevel(logging.WARNING)
 
@@ -76,6 +80,17 @@ voice_buffer = CircularAudioBuffer(voice_buffer_duration, int(samplerate))
 # Initialize Spleeter and Whisper
 separator = Separator('spleeter:2stems')  # for separating vocals and accompaniment
 whisper_model = whisper.load_model("base")
+
+def add_to_redis_list(redis_list, value):
+    client = redis.Redis(host='localhost', port=6379, db=0)
+
+    # Push the new value to the list at index 0
+    client.lpush(redis_list, value)
+
+    # Truncate the list to keep only the first 32 entries
+    client.ltrim(redis_list, 0, 31)
+
+
 
 if args.sample:
     directories_to_clean = [
@@ -140,6 +155,7 @@ with suppress_stderr():
                             # Print transcription or filename (as needed)
                             # print("Vocal track saved:", vocal_filename)
                             print(transcription)
+                            add_to_redis_list('transcription', transcription)
 
                         else:
                             print("No audio data to save.")
@@ -151,3 +167,4 @@ with suppress_stderr():
 
     except KeyboardInterrupt:
         exit("Interrupted by user")
+        quit()
