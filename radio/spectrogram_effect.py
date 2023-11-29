@@ -71,7 +71,7 @@ try:
 
             replace_value_atomic("installation_layout", json.dumps(frame))
 
-            if time.time() - last_save_time >= 15:
+            if False and time.time() - last_save_time >= 15:
                 buffer.save()  # Use the save method of CircularAudioBuffer
                 last_save_time = time.time()
 
