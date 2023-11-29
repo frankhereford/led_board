@@ -33,11 +33,16 @@ class CircularAudioBuffer:
     def get_current_buffer(self):
         return np.roll(self.recording, -self.current_frame, axis=0)
 
-    def save(self):
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"recording_{timestamp}.wav"
-        write(filename, self.sample_rate, self.get_current_buffer())
-        print(f"Saved as {filename}")
+    def save(self, length, filepath=None):
+        if filepath is None:
+            # Default file path generation
+            base_dir = "/home/frank/development/lightboard/voice/samples/in_flight_voice"
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filepath = f"{base_dir}/kutx_{length}s_{timestamp}.wav"
+
+        write(filepath, self.sample_rate, self.get_current_buffer())
+        #print(f"Saved as {filepath}")
+
 
     def estimate_tempo(self):
         # Check if we can use the cached tempo
