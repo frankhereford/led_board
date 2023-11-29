@@ -112,5 +112,15 @@ def parse_arguments():
         formatter={"int": "{:4d}".format},
     )
 
+    parser.add_argument(
+        "-p",
+        "--sample",
+        action="store_true",
+        default=False,
+        help="Enable this option to save the audio sample as a wav file.",
+    )
+
+
+
     args = parser.parse_args(remaining)
     return args
