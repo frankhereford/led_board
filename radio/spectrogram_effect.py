@@ -30,6 +30,10 @@ import sys
 import contextlib
 
 import redis
+from datetime import datetime
+
+
+from pydub import AudioSegment
 
 
 
@@ -93,13 +97,41 @@ def add_to_redis_list(redis_list, value):
     # Truncate the list to keep only the first 32 entries
     client.ltrim(redis_list, 0, 31)
 
+def create_mixup(original_file, vocal_file, duration=30, segment_length=5, output_dir="/home/frank/development/lightboard/voice/samples/mixup"):
+    # Load the audio files
+    original_audio = AudioSegment.from_wav(original_file)
+    vocal_audio = AudioSegment.from_wav(vocal_file)
+
+    # Initialize the mixed audio
+    mixed_audio = AudioSegment.empty()
+
+    # Create the mixup
+    for start_time in range(0, duration, segment_length):
+        end_time = start_time + segment_length
+        if start_time // segment_length % 2 == 0:
+            # Even segments from original audio
+            mixed_audio += original_audio[start_time * 1000:end_time * 1000]
+        else:
+            # Odd segments from vocal audio
+            mixed_audio += vocal_audio[start_time * 1000:end_time * 1000]
+
+    # Ensure output directory exists
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Save the mixed audio
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_file = os.path.join(output_dir, f"mixup_{timestamp}.wav")
+    mixed_audio.export(output_file, format="wav")
+    print(f"Mixed audio saved as {output_file}")
+
 
 
 if args.sample:
     directories_to_clean = [
         "/home/frank/development/lightboard/voice/samples/spleeter_output",
         "/home/frank/development/lightboard/voice/samples/raw_samples",
-        "/home/frank/development/lightboard/voice/samples/in_flight_voice"  # Add the new directory to the list
+        "/home/frank/development/lightboard/voice/samples/in_flight_voice",
+        "/home/frank/development/lightboard/voice/samples/mixup",
     ]
 
     clean_directories(directories_to_clean)
@@ -137,35 +169,43 @@ if True:
 
                     # Inside the main loop where you save the audio data
                     if args.sample and time.time() - last_save_time >= 15:
-                        # Check if there is audio data to save
-                        if np.any(voice_buffer.get_current_buffer() != 0):
-                            with tempfile.NamedTemporaryFile(delete=False, suffix='.wav', dir='/tmp') as temp_file:
-                                voice_buffer.save(voice_buffer.get_current_buffer(), temp_file.name)
+                        try:
+                            # Check if there is audio data to save
+                            if np.any(voice_buffer.get_current_buffer() != 0):
+                                with tempfile.NamedTemporaryFile(delete=False, suffix='.wav', dir='/tmp') as temp_file:
+                                    voice_buffer.save(voice_buffer.get_current_buffer(), temp_file.name)
 
-                                # Transcribe the audio (optional, if you need transcription)
+                                    # Transcribe the audio (optional, if you need transcription)
 
-                                # Split the audio into vocal and accompaniment
-                                vocal_path, accompaniment_path = split_audio(temp_file.name, '/tmp')
+                                    # Split the audio into vocal and accompaniment
+                                    vocal_path, accompaniment_path = split_audio(temp_file.name, '/tmp')
 
-                                # Save the vocal track to the specified directory with a timestamp
-                                vocal_filename = create_timestamped_filename("/home/frank/development/lightboard/voice/samples/in_flight_voice", prefix='vocal')
-                                os.rename(vocal_path, vocal_filename)
+                                    # Save the vocal track to the specified directory with a timestamp
+                                    vocal_filename = create_timestamped_filename("/home/frank/development/lightboard/voice/samples/in_flight_voice", prefix='vocal')
+                                    os.rename(vocal_path, vocal_filename)
 
-                                transcription = transcribe_audio(whisper_model, vocal_filename)
+                                    print("Temp file:", temp_file.name)
+                                    print("Vocal file:", vocal_filename)
+                                    create_mixup(temp_file.name, vocal_filename)
 
-                                # Remove the original temp file and accompaniment file
-                                os.remove(temp_file.name)
-                                os.remove(accompaniment_path)
 
-                            # Print transcription or filename (as needed)
-                            # print("Vocal track saved:", vocal_filename)
-                            print(transcription)
-                            add_to_redis_list('transcription', transcription)
+                                    transcription = transcribe_audio(whisper_model, vocal_filename)
 
-                        else:
-                            print("No audio data to save.")
+                                    # Remove the original temp file and accompaniment file
+                                    os.remove(temp_file.name)
+                                    os.remove(accompaniment_path)
 
-                        last_save_time = time.time()
+                                # Print transcription or filename (as needed)
+                                # print("Vocal track saved:", vocal_filename)
+                                print(transcription)
+                                add_to_redis_list('transcription', transcription)
+
+                            else:
+                                print("No audio data to save.")
+
+                            last_save_time = time.time()
+                        except Exception as e:
+                            print("Woops, something went wrong:", e)
 
                 replace_value_atomic("installation_layout", json.dumps(frame))
 
