@@ -30,7 +30,7 @@ def ask_openai(transcripts):
     #print(input)
 
     prompt = f"""
-I am going to present you with a list of five lines of transcriptions at the end of this prompt. There will be a blank newline before that input.
+I am going to present you with a few lines of transcriptions at the end of this prompt. There will be a blank newline before that input.
 Each transcription is of a 30 second audio clip recorded live off the radio from an alternative rock station.
 Each transcription is created from a rolling audio buffer of live audio and is updated every 15 seconds.
 This means that each transcription shares a 15 second overlap with the previous transcription.
@@ -38,9 +38,8 @@ It's your job to sort out the overlapping text.
 I want you to inspect the data and return just what you think the original spoken and sung words and lyrics are.
 Input that is highly repetative and does not make sense is probably created from instrumental audio and should be ignored.
 Some text will come from the DJ, and it will be recognizable because there are much fewer gramatical and nonsensical errors.
-All text is important, but please put "DJ:" in front of sentences by the DJ and put each one on a new line.
+All text is important. Don't ignore anything.
 Oftentimes, the clip will have started in the middle of a song and there was not an initial DJ introduction.
-Please pad the "DJ:" lines with a blank line after they are complete before the song starts.
 Words that come from songs will be much more chatoic and nonsensical. Do your best. Use your knowledge of music lyrics to help
 you understand and recreate the actual stream of words that were spoken and sung.
 If you recognize the song, use that to inform the lyrics you print.
@@ -50,10 +49,11 @@ Also, never include lyrics that you do not see in the text. Do not predict lyric
 
 {input}
 """
+#Please pad the "DJ:" lines with a blank line after they are complete before the song starts.
 
-    print('===')
+    print('=== IN ===')
     print(input)
-    print('===')
+    print('=== IN ===')
 
 
     chat_completion = client.chat.completions.create(
@@ -81,8 +81,9 @@ def main():
     if data:
         decoded_data = [item.decode('utf-8') for item in data]
         response = ask_openai(decoded_data)
+        print('--- OUT ---')
         print(response.choices[0].message.content)
-        print('---')
+        print('--- OUT ---')
         print()
         print()
     else:
