@@ -5,6 +5,8 @@ import sounddevice as sd
 from collections import deque
 import wave
 import time
+import shutil
+import os
 
 from lib.spectrograph import *
 from lib.argparse import parse_arguments
@@ -12,6 +14,7 @@ from lib.layout import read_json_from_file, replace_value_atomic
 from lib.utilities import BrightnessTracker
 from lib.audio_buffer import CircularAudioBuffer
 from lib.lights import LightsRedux
+from lib.voice import clean_directories
 
 
 args = parse_arguments()
@@ -30,15 +33,13 @@ def callback(indata, frames, time, status): # handle incoming audio sample
 duration = 15  # seconds
 buffer = CircularAudioBuffer(duration, int(samplerate))
 
+if args.sample:
+    directories_to_clean = [
+        "/home/frank/development/lightboard/voice/samples/spleeter_output",
+        "/home/frank/development/lightboard/voice/samples/raw_samples"
+    ]
 
-def write_buffer_to_wav(buffer, filename):
-    """Write the contents of the buffer to a WAV file."""
-    with wave.open(filename, 'wb') as wav_file:
-        wav_file.setnchannels(1)
-        wav_file.setsampwidth(2)  # Assuming 16-bit audio, hence 2 bytes per sample
-        wav_file.setframerate(int(samplerate))
-        wav_file.writeframes(buffer.read_all())
-
+    clean_directories(directories_to_clean)
 
 try:
     last_save_time = time.time()
