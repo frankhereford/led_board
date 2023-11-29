@@ -137,7 +137,8 @@ if args.sample:
     clean_directories(directories_to_clean)
 
 #with suppress_stderr():
-if True:
+#if True:
+def main():
     try:
         last_save_time = time.time()
 
@@ -213,3 +214,6 @@ if True:
     except KeyboardInterrupt:
         exit("Interrupted by user")
         quit()
+
+if __name__ == "__main__":
+    main()
