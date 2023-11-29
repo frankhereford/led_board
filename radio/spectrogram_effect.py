@@ -3,6 +3,8 @@
 import json
 import sounddevice as sd
 from collections import deque
+import wave
+import time
 
 from lib.spectrograph import *
 from lib.argparse import parse_arguments
@@ -28,7 +30,19 @@ def callback(indata, frames, time, status): # handle incoming audio sample
 duration = 15  # seconds
 buffer = CircularAudioBuffer(duration, int(samplerate))
 
+
+def write_buffer_to_wav(buffer, filename):
+    """Write the contents of the buffer to a WAV file."""
+    with wave.open(filename, 'wb') as wav_file:
+        wav_file.setnchannels(1)
+        wav_file.setsampwidth(2)  # Assuming 16-bit audio, hence 2 bytes per sample
+        wav_file.setframerate(int(samplerate))
+        wav_file.writeframes(buffer.read_all())
+
+
 try:
+    last_save_time = time.time()
+
     with sd.InputStream(
         device=args.device,
         channels=1,
@@ -56,6 +70,10 @@ try:
                         )
 
             replace_value_atomic("installation_layout", json.dumps(frame))
+
+            if time.time() - last_save_time >= 15:
+                buffer.save()  # Use the save method of CircularAudioBuffer
+                last_save_time = time.time()
 
 except KeyboardInterrupt:
     exit("Interrupted by user")
