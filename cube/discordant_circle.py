@@ -66,7 +66,7 @@ def transform_coordinate(point, target_x_max=100, target_y_max=100):
 
 def cycle_hue(slice_index):
     hue = 0  # Starting hue is the same for all slices
-    rate_of_change = 1
+    rate_of_change = .05
     hue_increment = (
         1 + rate_of_change * slice_index
     )  # Speed of color change increases with slice index
