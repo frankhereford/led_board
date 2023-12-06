@@ -20,6 +20,7 @@ pygame.display.set_caption("Simulation")
 circle_center = (width // 2, height // 2)
 circle_radius = 150
 num_slices = 512
+rate_of_change = .02
 
 # Colors for each slice
 slice_colors = [(0, 0, 0)] * num_slices  # Initialize all slices as black
@@ -66,7 +67,6 @@ def transform_coordinate(point, target_x_max=100, target_y_max=100):
 
 def cycle_hue(slice_index):
     hue = 0  # Starting hue is the same for all slices
-    rate_of_change = .002
     hue_increment = (
         1 + rate_of_change * slice_index
     )  # Speed of color change increases with slice index
