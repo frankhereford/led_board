@@ -16,7 +16,7 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { createClient } from "redis";
 
 const client = createClient({
-  url: 'redis://localhost'
+  url: process.env.REDIS_URL ?? 'redis://localhost'
 });
 
 client.on('error', (err) => console.log('Redis Client Error', err));

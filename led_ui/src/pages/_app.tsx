@@ -2,7 +2,7 @@ import { type AppType } from "next/app";
 
 import { api } from "~/utils/api";
 
-import { AppProvider } from '~/pages/contexts/AppContext';
+import { AppProvider } from '~/contexts/AppContext';
 
 import "~/styles/globals.css";
 

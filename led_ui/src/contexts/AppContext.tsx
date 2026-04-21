@@ -27,7 +27,7 @@ type AppProviderProps = {
 export const AppProvider = ({ children }: AppProviderProps) => {
   const [colorArrays, setColorArrays] = useState<number[][]>(defaultValues.colorArrays);
   const [isMouseDown, setIsMouseDown] = useState<boolean>(defaultValues.isMouseDown);
-  const [activeSwatch, setActiveSwatch] = useState<number>(defaultValues.activeSwatch); // New state variable added here
+  const [activeSwatch, setActiveSwatch] = useState<number>(defaultValues.activeSwatch);
 
   return (
     <AppContext.Provider value={{ colorArrays, setColorArrays, isMouseDown, setIsMouseDown, activeSwatch, setActiveSwatch }}>
