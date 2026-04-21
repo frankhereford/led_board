@@ -1,7 +1,7 @@
 import React from 'react';
 import { useContext } from 'react';
 import { TwitterPicker } from 'react-color';
-import { AppContext } from '~/contexts/AppContext';
+import { AppContext } from '~/pages/contexts/AppContext';
 
 function arrayToRgbColor(array: [number, number, number]): { r: number; g: number; b: number } {
   const [r, g, b] = array;
@@ -10,10 +10,10 @@ function arrayToRgbColor(array: [number, number, number]): { r: number; g: numbe
 
 function hexToRgbArray(hex: string): [number, number, number] | null {
   const match = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return match ? [parseInt(match[1]!, 16), parseInt(match[2]!, 16), parseInt(match[3]!, 16)] : null;
+  return match ? [parseInt(match[1], 16), parseInt(match[2], 16), parseInt(match[3], 16)] : null;
 }
 
-const replaceArrayValue = (array: unknown[], index: number, newValue: unknown) => {
+const replaceArrayValue = (array, index, newValue) => {
   return [
     ...array.slice(0, index), // Elements before the index
     newValue,                 // New value at the index
@@ -25,7 +25,7 @@ const replaceArrayValue = (array: unknown[], index: number, newValue: unknown) =
 const ColorPicker: React.FC = ({ }) => {
   const { colorArrays, setColorArrays, isMouseDown, activeSwatch } = useContext(AppContext);
 
-  const handleChangeComplete = (color: { hex: string }) => {
+  const handleChangeComplete = (color) => {
     console.log(hexToRgbArray(color.hex))
     setColorArrays(replaceArrayValue(colorArrays, activeSwatch, hexToRgbArray(color.hex)));
   };

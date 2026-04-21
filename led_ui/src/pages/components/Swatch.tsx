@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { AppContext } from '~/contexts/AppContext';
+import { AppContext } from '~/pages/contexts/AppContext';
 
 function toCssBackground(rgb: [number, number, number]): string {
   return `#${rgb.map(val => val.toString(16).padStart(2, '0')).join('')}`;

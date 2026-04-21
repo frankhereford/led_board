@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { useContext } from 'react';
-import { AppContext } from '~/contexts/AppContext';
+import { AppContext } from '~/pages/contexts/AppContext';
 
 import { api } from "~/utils/api";
 

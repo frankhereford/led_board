@@ -6,7 +6,7 @@ import Square from "~/pages/components/Square";
 import Swatch from "~/pages/components/Swatch";
 import ColorPicker from "~/pages/components/ColorPicker";
 
-import { AppContext } from '~/contexts/AppContext';
+import { AppContext } from '~/pages/contexts/AppContext';
 
 import { api } from "~/utils/api";
 
@@ -40,8 +40,7 @@ export default function Home() {
   }, [getBoard.data]);
 
   useEffect(() => {
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL ?? 'wss://led-board.frankhereford.com/ws';
-    const websocket = new WebSocket(wsUrl);
+    const websocket = new WebSocket('wss://draw-on-me-websockets.tomgreen.house/ws');
 
     websocket.onopen = () => {
       console.log('WebSocket Connected');

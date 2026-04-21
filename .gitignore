@@ -1,4 +1,2 @@
 venv
 .vscode
-certs/
-.aws.credentials
