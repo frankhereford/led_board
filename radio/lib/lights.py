@@ -127,7 +127,7 @@ class LightsRedux:
         group_names = set()
         for ip in self.lights:
             for group_name in self.lights[ip]:
-                print("group_name", group_name)
+                #print("group_name", group_name)
                 if group_name in [
                     "Left Window",
                     "Right Window",

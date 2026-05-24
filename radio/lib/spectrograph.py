@@ -129,7 +129,7 @@ def create_spectrograph_parameters(layout_in):
 
     delta_f = (high - low) / (args.columns - 1)
     fftsize = math.ceil(samplerate / delta_f)
-    print("fftsize:", fftsize)
+    #print("fftsize:", fftsize)
     low_bin = math.floor(low / delta_f)
 
     sample_buffer = deque(maxlen=32)
